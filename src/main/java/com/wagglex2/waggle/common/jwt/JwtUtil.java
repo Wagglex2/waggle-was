@@ -178,4 +178,12 @@ public class JwtUtil {
             return 0;
         }
     }
+
+    public long getRefreshExpMills() {
+        return refreshExp;
+    }
+
+    public long getAccessExpMills() {
+        return accessExp;
+    }
 }
