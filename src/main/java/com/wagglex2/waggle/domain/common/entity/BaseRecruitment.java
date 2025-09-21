@@ -1,5 +1,6 @@
 package com.wagglex2.waggle.domain.common.entity;
 
+import com.wagglex2.waggle.domain.common.type.RecruitmentCategory;
 import com.wagglex2.waggle.domain.common.type.RecruitmentStatus;
 import com.wagglex2.waggle.domain.project.entity.Project;
 import com.wagglex2.waggle.domain.user.entity.User;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
  *
  * <ul>
  *   <li>{@link User} : 공고 작성자 (N:1 관계)</li>
+ *   <li>{@link RecruitmentCategory} : 공고 카테고리</li>
  *   <li>title : 공고 제목</li>
  *   <li>content : 공고 본문 (최대 4096자)</li>
  *   <li>deadline : 모집 마감일</li>
@@ -43,6 +45,10 @@ public abstract class BaseRecruitment {
     private User user;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private RecruitmentCategory category;
+
+    @Column(nullable = false)
     private String title;
 
     @Column(nullable = false, length = 4096)
@@ -62,8 +68,12 @@ public abstract class BaseRecruitment {
     @Column(name = "view_count", nullable = false)
     private int viewCount = 0;
 
-    protected BaseRecruitment(User user, String title, String content, LocalDateTime deadline) {
+    protected BaseRecruitment(
+            User user, RecruitmentCategory category,
+            String title, String content, LocalDateTime deadline
+    ) {
         this.user = user;
+        this.category = category;
         this.title = title;
         this.content = content;
         this.deadline = deadline;

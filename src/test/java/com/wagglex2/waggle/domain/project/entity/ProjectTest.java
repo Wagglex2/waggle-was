@@ -1,6 +1,7 @@
 package com.wagglex2.waggle.domain.project.entity;
 
 import com.wagglex2.waggle.domain.common.type.PositionType;
+import com.wagglex2.waggle.domain.common.type.RecruitmentCategory;
 import com.wagglex2.waggle.domain.common.type.RecruitmentStatus;
 import com.wagglex2.waggle.domain.common.type.Skill;
 import com.wagglex2.waggle.domain.project.type.MeetingType;
@@ -56,6 +57,7 @@ class ProjectTest {
                 .build();
 
         // then
+        assertThat(project.getCategory()).isEqualTo(RecruitmentCategory.PROJECT);
         assertThat(project.getTitle()).isEqualTo(title);
         assertThat(project.getContent()).isEqualTo(content);
         assertThat(project.getPurpose()).isEqualTo(purpose);

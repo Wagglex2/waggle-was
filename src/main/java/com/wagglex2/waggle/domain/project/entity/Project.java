@@ -1,6 +1,7 @@
 package com.wagglex2.waggle.domain.project.entity;
 
 import com.wagglex2.waggle.domain.common.entity.BaseRecruitment;
+import com.wagglex2.waggle.domain.common.type.RecruitmentCategory;
 import com.wagglex2.waggle.domain.common.type.Skill;
 import com.wagglex2.waggle.domain.project.type.MeetingType;
 import com.wagglex2.waggle.domain.project.type.Position;
@@ -81,7 +82,7 @@ public class Project extends BaseRecruitment {
             List<Position> positions, List<Skill> skills, List<Integer> grades,
             LocalDate startDate, LocalDate endDate
     ) {
-        super(user, title, content, deadline);
+        super(user, RecruitmentCategory.PROJECT, title, content, deadline);
         this.purpose = purpose;
         this.meetingType = meetingType;
         this.positions = positions;
