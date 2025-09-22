@@ -24,3 +24,4 @@ public enum PositionType {
         return this.name();
     }
 }
+
