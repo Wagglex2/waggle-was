@@ -14,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
@@ -60,30 +61,57 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
             String redisKey = REFRESH_TOKEN_PREFIX + userId;
             redisTemplate.delete(redisKey);
 
-            // 새로운 RefreshToken을 Redis에 저장
+            // 새로운 RefreshToken을 Redis에 저장 -> 해시 후 저장 (Redis 유출되더라도 안전함)
+            String hashedRefreshToken = BCrypt.hashpw(refreshToken, BCrypt.gensalt());
             long refreshExpMills = jwtUtil.getRefreshExpMills();
-            redisTemplate.opsForValue().set(redisKey, refreshToken, refreshExpMills, TimeUnit.MILLISECONDS);
+            redisTemplate.opsForValue().set(redisKey, hashedRefreshToken, refreshExpMills, TimeUnit.MILLISECONDS);
 
             log.info("Refresh token stored in Redis for user: {}", userId);
 
-            // AccessToken을 쿠키에 담아 내려주기
-            ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN_COOKIE_NAME, accessToken)
-                    .httpOnly(true)
-                    .secure(true)
-                    .sameSite("Strict")
-                    .path("/")
-                    .maxAge(Duration.ofMillis(jwtUtil.getAccessExpMills()))
-                    .build();
-
-            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+            // 쿠키 생성 및 응답에 추가
+            addTokenCookieToResponse(response, accessToken, refreshToken);
 
             // 성공 응답 생성
             handleSuccess(response);
 
+        } catch (ClassCastException e) {
+            log.error("Authentication principal is not CustomUserDetails", e);
+            handleError(response, "인증 정보가 올바르지 않습니다.");
         } catch (Exception e) {
             log.error("Error during authentication success handling", e);
-            handleError(response);
+            handleError(response, "로그인 처리 중 오류가 발생했습니다.");
         }
+    }
+
+    private void addTokenCookieToResponse(HttpServletResponse response,
+                                          String accessToken,
+                                          String refreshToken) {
+
+        // Access Token Cookie 생성
+        ResponseCookie accessCookie = createResponseCookie(ACCESS_TOKEN_COOKIE_NAME,
+                accessToken,
+                Duration.ofMillis(jwtUtil.getAccessExpMills()));
+
+        // Refresh Token Cookie 생성
+        ResponseCookie refreshCookie = createResponseCookie(REFRESH_TOKEN_COOKIE_NAME,
+                refreshToken,
+                Duration.ofMillis(jwtUtil.getRefreshExpMills()));
+
+        // Cookie를 헤더에 추가
+        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+    }
+
+    private ResponseCookie createResponseCookie(String name, String value, Duration maxAge) {
+
+        // Lax로 설정, 쿠키가 안붙으면 None으로 바꿔주기
+        return ResponseCookie.from(name, value)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(maxAge)
+                .build();
     }
 
     private void handleSuccess(HttpServletResponse response) throws IOException {
@@ -100,10 +128,10 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         response.getWriter().write(jsonResponse);
     }
 
-    private void handleError(HttpServletResponse response) throws IOException {
+    private void handleError(HttpServletResponse response, String message) throws IOException {
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("code", "LOGIN_ERROR");
-        responseBody.put("message", "로그인 처리 중 오류가 발생했습니다.");
+        responseBody.put("message", message);
         responseBody.put("data", null);
 
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
