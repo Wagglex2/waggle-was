@@ -60,10 +60,10 @@ public class JwtFilter extends OncePerRequestFilter {
                     setAuthentication(accessToken);
                     log.debug("Valid access token found, authentication set for request: {}", request.getRequestURL());
                 } else {
-                    log.debug("Invalid or expired access token, attempting refresh");
-
-                    // Access Token이 유효하지 않으면 Refresh Token으로 갱신 시도
-                    handleTokenRefresh(request, response);
+                    log.debug("Invalid or expired access token");
+                    SecurityContextHolder.clearContext();
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    return;
                 }
             } else {
                 log.debug("No access token found in request: {}", request.getRequestURL());
@@ -88,13 +88,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // 2. Cookie에서 추출
         return extractTokenFromCookie(request, ACCESS_TOKEN_COOKIE_NAME);
-    }
-
-    /**
-     * Refresh Token 추출 (Cookie에서)
-     */
-    private String extractRefreshToken(HttpServletRequest request) {
-        return extractTokenFromCookie(request, REFRESH_TOKEN_COOKIE_NAME);
     }
 
     /**
@@ -144,120 +137,5 @@ public class JwtFilter extends OncePerRequestFilter {
             log.error("Error setting authentication: {}", e.getMessage());
             SecurityContextHolder.clearContext();
         }
-    }
-
-    /**
-     * Access Token 만료 시 Refresh Token으로 갱신
-     */
-    private void handleTokenRefresh(HttpServletRequest request, HttpServletResponse response) {
-        try {
-            String refreshToken = extractRefreshToken(request);
-
-            // Refresh Token이 비어있을 때
-            if (!StringUtils.hasText(refreshToken)) {
-                log.debug("No refresh token found");
-                SecurityContextHolder.clearContext();
-                return;
-            }
-
-            // Refresh Token 검증 (서명 + 만료 확인)
-            if (!jwtUtil.validateToken(refreshToken) || !jwtUtil.isRefreshToken(refreshToken)) {
-                log.debug("Invalid refresh token");
-                clearTokenCookies(response);
-                SecurityContextHolder.clearContext();
-                return;
-            }
-
-            // Redis에서 Refresh Token 확인
-            Long userId = jwtUtil.getUserId(refreshToken);
-            String redisKey = REFRESH_TOKEN_PREFIX + userId;
-            String storedRefreshToken = redisTemplate.opsForValue().get(redisKey);
-
-            // 원본과 hash된 Refresh Token 비교
-            if (!StringUtils.hasText(storedRefreshToken) || !BCrypt.checkpw(refreshToken, storedRefreshToken)) {
-                log.warn("Refresh token mismatch for user: {}", userId);
-                clearTokenCookies(response);
-                SecurityContextHolder.clearContext();
-                return;
-            }
-
-            // 새로운 Access Token 발급
-            User user = userService.findById(userId);
-            if (user == null) {
-                log.warn("User not found during token refresh: {}", userId);
-                clearTokenCookies(response);
-                SecurityContextHolder.clearContext();
-                return;
-            }
-
-            String newAccessToken = jwtUtil.createAccessToken(
-                    user.getId(), user.getUsername(), user.getNickname(),user.getRole().name());
-
-
-            // Refresh Token 회전
-            String newRefreshToken = jwtUtil.createRefreshToken(userId);
-            String newHashedRefreshToken = BCrypt.hashpw(newRefreshToken, BCrypt.gensalt());
-            // set만 하더라도 원래 있던 value를 덮어씀 -> 굳이 delete할 필요 없음
-            redisTemplate.opsForValue().set(redisKey, newHashedRefreshToken, jwtUtil.getRefreshExpMills(), TimeUnit.MILLISECONDS);
-
-            // 새로운 Access Token을 쿠키에 설정
-            setTokenCookie(response, newAccessToken, ACCESS_TOKEN_COOKIE_NAME);
-            setTokenCookie(response, newRefreshToken, REFRESH_TOKEN_COOKIE_NAME);
-
-            // 인증 설정
-            setAuthentication(newAccessToken);
-            log.info("Access token refreshed for user: {}", userId);
-
-        } catch (Exception e) {
-            log.error("Error during token refresh: {}", e.getMessage());
-        }
-    }
-
-    /**
-     * 새로운 Access / Refresh Token 쿠키 설정
-     */
-    private void setTokenCookie(HttpServletResponse response, String token, String cookieName) {
-
-        String cookieValue = "";
-
-        if (cookieName.equals(ACCESS_TOKEN_COOKIE_NAME)) {
-            cookieValue = String.format(
-                    "%s=%s; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=%d",
-                    ACCESS_TOKEN_COOKIE_NAME,
-                    token,
-                    jwtUtil.getAccessExpMills() / 1000
-            );
-        }
-
-        if (cookieName.equals(REFRESH_TOKEN_COOKIE_NAME)) {
-            cookieValue = String.format(
-                    "%s=%s; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=%d",
-                    REFRESH_TOKEN_COOKIE_NAME,
-                    token,
-                    jwtUtil.getRefreshExpMills() / 1000
-            );
-        }
-
-        response.addHeader("Set-Cookie", cookieValue);
-    }
-
-    /**
-     * Token Cookie 제거
-     */
-    private void clearTokenCookies(HttpServletResponse response) {
-        // Access Token Cookie 제거
-        String clearAccessCookie = String.format(
-                "%s=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0",
-                ACCESS_TOKEN_COOKIE_NAME
-        );
-
-        // Refresh Token Cookie 제거
-        String clearRefreshCookie = String.format(
-                "%s=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0",
-                REFRESH_TOKEN_COOKIE_NAME
-        );
-
-        response.addHeader("Set-Cookie", clearAccessCookie);
-        response.addHeader("Set-Cookie", clearRefreshCookie);
     }
 }
