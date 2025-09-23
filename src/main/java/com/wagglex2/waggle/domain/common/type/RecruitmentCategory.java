@@ -18,4 +18,3 @@ public enum RecruitmentCategory {
         return this.name();
     }
 }
-
