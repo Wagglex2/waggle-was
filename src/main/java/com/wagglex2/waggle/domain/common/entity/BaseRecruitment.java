@@ -7,6 +7,7 @@ import com.wagglex2.waggle.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -64,6 +65,10 @@ public abstract class BaseRecruitment {
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreatedDate
     private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false, insertable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
 
     @Column(name = "view_count", nullable = false)
     private int viewCount = 0;
