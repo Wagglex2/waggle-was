@@ -21,6 +21,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         log.debug("Loading user details for username: {}", username);
 
         User user = userService.findByUsername(username);
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found: " + username);
+        }
 
         log.debug("User loaded successfully: {} (ID: {})", username, user.getId());
         return new CustomUserDetails(user);

@@ -1,4 +1,4 @@
-package com.wagglex2.waggle.common.jwt;
+package com.wagglex2.waggle.common.security.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

@@ -1,6 +1,5 @@
 package com.wagglex2.waggle.common.config;
 
-import com.wagglex2.waggle.common.security.CustomUserDetailsService;
 import com.wagglex2.waggle.common.security.handler.LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -32,6 +31,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
+                        .loginProcessingUrl("/api/v1/login")
                         .successHandler(loginSuccessHandler)
                 )
                 .csrf(AbstractHttpConfigurer::disable) // API 서버이므로 CSRF 비활성화

@@ -1,7 +1,7 @@
 package com.wagglex2.waggle.common.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wagglex2.waggle.common.jwt.JwtUtil;
+import com.wagglex2.waggle.common.security.jwt.JwtUtil;
 import com.wagglex2.waggle.common.security.CustomUserDetails;
 import com.wagglex2.waggle.domain.user.entity.User;
 import jakarta.servlet.ServletException;
