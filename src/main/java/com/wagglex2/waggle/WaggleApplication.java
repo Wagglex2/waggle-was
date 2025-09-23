@@ -5,9 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class WaggleApplication {
-
 	public static void main(String[] args) {
-		SpringApplication.run(WaggleApplication.class, args);
+        SpringApplication.run(WaggleApplication.class, args);
 	}
 
 }

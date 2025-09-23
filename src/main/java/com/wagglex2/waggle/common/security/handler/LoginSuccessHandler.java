@@ -83,25 +83,39 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         }
     }
 
+    /**
+     * 응답 Cookie에 Access / Refresh Token 담기
+     */
     private void addTokenCookieToResponse(HttpServletResponse response,
                                           String accessToken,
                                           String refreshToken) {
 
         // Access Token Cookie 생성
-        ResponseCookie accessCookie = createResponseCookie(ACCESS_TOKEN_COOKIE_NAME,
+        ResponseCookie accessCookie = createResponseCookie(
+                ACCESS_TOKEN_COOKIE_NAME,
                 accessToken,
-                Duration.ofMillis(jwtUtil.getAccessExpMills()));
+                Duration.ofMillis(jwtUtil.getAccessExpMills())
+        );
 
         // Refresh Token Cookie 생성
-        ResponseCookie refreshCookie = createResponseCookie(REFRESH_TOKEN_COOKIE_NAME,
+        ResponseCookie refreshCookie = createResponseCookie(
+                REFRESH_TOKEN_COOKIE_NAME,
                 refreshToken,
-                Duration.ofMillis(jwtUtil.getRefreshExpMills()));
+                Duration.ofMillis(jwtUtil.getRefreshExpMills())
+        );
 
         // Cookie를 헤더에 추가
         response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
     }
 
+    /**
+     * Refresh / Access Token 쿠키에 담기
+     * @param name Refresh / Access Token Cookie Name
+     * @param value Refresh / Access Token 값
+     * @param maxAge Refresh / Access 만료 기간
+     * @return
+     */
     private ResponseCookie createResponseCookie(String name, String value, Duration maxAge) {
 
         // Lax로 설정, 쿠키가 안붙으면 None으로 바꿔주기
@@ -114,6 +128,9 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
                 .build();
     }
 
+    /**
+     * 로그인 성공했을 때 JSON 반환값 설정
+     */
     private void handleSuccess(HttpServletResponse response) throws IOException {
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("code", "SUCCESS");
@@ -128,6 +145,9 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         response.getWriter().write(jsonResponse);
     }
 
+    /**
+     * 로그인 실패했을 때 JSON 반환값 설정
+     */
     private void handleError(HttpServletResponse response, String message) throws IOException {
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("code", "LOGIN_ERROR");
