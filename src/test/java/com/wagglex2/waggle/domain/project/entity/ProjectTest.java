@@ -1,9 +1,6 @@
 package com.wagglex2.waggle.domain.project.entity;
 
-import com.wagglex2.waggle.domain.common.type.PositionType;
-import com.wagglex2.waggle.domain.common.type.RecruitmentCategory;
-import com.wagglex2.waggle.domain.common.type.RecruitmentStatus;
-import com.wagglex2.waggle.domain.common.type.Skill;
+import com.wagglex2.waggle.domain.common.type.*;
 import com.wagglex2.waggle.domain.project.type.MeetingType;
 import com.wagglex2.waggle.domain.project.type.Position;
 import com.wagglex2.waggle.domain.project.type.ProjectPurpose;
@@ -40,6 +37,7 @@ class ProjectTest {
         List<Integer> grades = Arrays.asList(3, 4);
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = LocalDate.now().plusDays(10);
+        Period period = new Period(startDate, endDate);
         LocalDateTime deadline = LocalDateTime.now().minusDays(3);
 
         // when
@@ -51,8 +49,7 @@ class ProjectTest {
                 .positions(positions)
                 .skills(skills)
                 .grades(grades)
-                .startDate(startDate)
-                .endDate(endDate)
+                .period(period)
                 .deadline(deadline)
                 .build();
 
@@ -65,8 +62,7 @@ class ProjectTest {
         assertThat(project.getPositions()).containsExactlyInAnyOrderElementsOf(positions);
         assertThat(project.getSkills()).containsExactlyInAnyOrderElementsOf(skills);
         assertThat(project.getGrades()).containsExactlyInAnyOrderElementsOf(grades);
-        assertThat(project.getStartDate()).isEqualTo(startDate);
-        assertThat(project.getEndDate()).isEqualTo(endDate);
+        assertThat(project.getPeriod()).isEqualTo(period);
         assertThat(project.getDeadline()).isEqualTo(deadline);
         assertThat(project.getStatus()).isEqualTo(RecruitmentStatus.RECRUITING);
         assertThat(project.getViewCount()).isEqualTo(0);

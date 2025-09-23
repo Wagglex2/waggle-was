@@ -1,6 +1,7 @@
 package com.wagglex2.waggle.domain.project.entity;
 
 import com.wagglex2.waggle.domain.common.entity.BaseRecruitment;
+import com.wagglex2.waggle.domain.common.type.Period;
 import com.wagglex2.waggle.domain.common.type.RecruitmentCategory;
 import com.wagglex2.waggle.domain.common.type.Skill;
 import com.wagglex2.waggle.domain.project.type.MeetingType;
@@ -10,7 +11,6 @@ import com.wagglex2.waggle.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +28,7 @@ import java.util.List;
  *   <li>{@link Position} : 모집 포지션 리스트 (ElementCollection)</li>
  *   <li>{@link Skill} : 요구 기술 스택 (ElementCollection)</li>
  *   <li>grades : 지원 가능 학년 (ElementCollection)</li>
- *   <li>startDate, endDate : 프로젝트 기간</li>
+ *   <li>{@link Period} : 프로젝트 기간</li>
  * </ul>
  *
  * @author 오재민
@@ -69,18 +69,15 @@ public class Project extends BaseRecruitment {
     )
     private List<Integer> grades = new ArrayList<>();
 
-    @Column(name = "start_date", nullable = false)
-    private LocalDate startDate;
-
-    @Column(name = "end_date", nullable = false)
-    private LocalDate endDate;
+    @Embedded
+    private Period period;
 
     @Builder
     public Project(
             User user, String title, String content, LocalDateTime deadline,
             ProjectPurpose purpose, MeetingType meetingType,
             List<Position> positions, List<Skill> skills, List<Integer> grades,
-            LocalDate startDate, LocalDate endDate
+            Period period
     ) {
         super(user, RecruitmentCategory.PROJECT, title, content, deadline);
         this.purpose = purpose;
@@ -88,7 +85,6 @@ public class Project extends BaseRecruitment {
         this.positions = positions;
         this.skills = skills;
         this.grades = grades;
-        this.startDate = startDate;
-        this.endDate = endDate;
+        this.period = period;
     }
 }
