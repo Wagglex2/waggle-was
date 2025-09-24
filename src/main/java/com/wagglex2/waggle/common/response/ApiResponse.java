@@ -19,6 +19,8 @@ public class ApiResponse<T> {
     // ----- 성공 ----- //
     public static <T> ApiResponse<T> ok() { return of ("SUCCESS", "성공", null); }
 
+    public static <T> ApiResponse<T> ok(String message) { return of ("SUCCESS", message, null); }
+
     public static <T> ApiResponse<T> ok(T data) {
         return of("SUCCESS", "성공", data);
     }

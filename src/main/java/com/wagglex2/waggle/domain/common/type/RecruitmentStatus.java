@@ -18,3 +18,4 @@ public enum RecruitmentStatus {
         return this.name();
     }
 }
+
