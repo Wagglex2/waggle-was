@@ -2,7 +2,6 @@ package com.wagglex2.waggle.common.security;
 
 import com.wagglex2.waggle.domain.user.entity.User;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,39 +9,59 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
 
-@RequiredArgsConstructor
 @Getter
 public class CustomUserDetails implements UserDetails {
 
-    private final User user;
+    private final Long userId;
+    private final String username;
+    private final String password;
+    private final String nickname;
+    private final String role;
 
-    // User 엔티티에 직접 접근할 수 있는 메서드
-    public User getUser() {
-        return user;
-    }
+    // 생성자
+    public CustomUserDetails(User user) {
+        this.userId = user.getId();
+        this.username = user.getUsername();
+        this.password = user.getPassword();
+        this.nickname = user.getNickname();
+        this.role = user.getRole().name();
 
-    public Long getUserId() {
-        return user.getId();
-    }
-
-    public String getNickname() {
-        return user.getNickname();
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(
-                new SimpleGrantedAuthority(user.getRole().name())
+                new SimpleGrantedAuthority(role)
         );
     }
 
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return password;
     }
 
     @Override
     public String getUsername() {
-        return user.getUsername();
+        return username;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 }
