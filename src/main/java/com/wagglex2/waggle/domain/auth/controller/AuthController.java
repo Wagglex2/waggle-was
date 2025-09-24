@@ -1,4 +1,4 @@
-package com.wagglex2.waggle.domain.auth;
+package com.wagglex2.waggle.domain.auth.controller;
 
 import com.wagglex2.waggle.common.error.ErrorCode;
 import com.wagglex2.waggle.common.response.ApiResponse;
@@ -43,7 +43,7 @@ public class AuthController {
         String refreshToken = extractRefreshToken(request);
 
         if (!StringUtils.hasText(refreshToken) || !jwtUtil.validateToken(refreshToken) || !jwtUtil.isRefreshToken(refreshToken)) {
-            log.warn("Invalid refresh token");
+            log.warn("Refresh Token이 유효하지 않습니다.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.error(ErrorCode.REFRESH_TOKEN_INVALID));
         }
@@ -53,7 +53,7 @@ public class AuthController {
         String storedRefreshToken = redisTemplate.opsForValue().get(redisKey);
 
         if (!StringUtils.hasText(storedRefreshToken) || !BCrypt.checkpw(refreshToken, storedRefreshToken)) {
-            log.warn("Refresh token mismatch for user: {}", userId);
+            log.warn("Refresh Token이 일치하지 않습니다: {}", userId);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.error(ErrorCode.REFRESH_TOKEN_MISMATCH));
         }

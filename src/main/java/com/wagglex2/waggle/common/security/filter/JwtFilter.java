@@ -12,18 +12,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
@@ -32,11 +29,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserService userService;
-    private final RedisTemplate<String, String> redisTemplate;
 
-    private static final String REFRESH_TOKEN_PREFIX = "RT:";
     private static final String ACCESS_TOKEN_COOKIE_NAME = "access_token";
-    private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -54,22 +48,25 @@ public class JwtFilter extends OncePerRequestFilter {
             // JWT Token 추출 (Authorization Header 또는 쿠키에서)
             String accessToken = extractAccessToken(request);
 
-            if (StringUtils.hasText(accessToken)) {
-                // Access Token 검증 및 인증 처리
-                if (jwtUtil.validateToken(accessToken) && jwtUtil.isAccessToken(accessToken)) {
-                    setAuthentication(accessToken);
-                    log.debug("Valid access token found, authentication set for request: {}", request.getRequestURL());
-                } else {
-                    log.debug("Invalid or expired access token");
-                    SecurityContextHolder.clearContext();
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    return;
-                }
-            } else {
-                log.debug("No access token found in request: {}", request.getRequestURL());
+            if (!StringUtils.hasText(accessToken)) {
+                log.debug("요청에서 Access Token을 찾을 수 없습니다: {}", request.getRequestURL());
+                SecurityContextHolder.clearContext();
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
             }
+
+            if (!jwtUtil.validateToken(accessToken) || !jwtUtil.isAccessToken(accessToken)) {
+                log.debug("Access Token이 만료되거나 유효하지 않습니다.");
+                SecurityContextHolder.clearContext();
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+
+            setAuthentication(accessToken);
+            log.debug("유효한 Access Token입니다. 요청한 URL : {}", request.getRequestURL());
+
         } catch (Exception e) {
-            log.error("JWT authentication error: {}", e.getMessage(), e);
+            log.error("JWT 인증 중 오류가 발생했습니다.: {}", e.getMessage(), e);
 
             // 인증 오류 시 SecurityContext Clear
             SecurityContextHolder.clearContext();
@@ -119,7 +116,7 @@ public class JwtFilter extends OncePerRequestFilter {
             User user = userService.findById(userId);
 
             if (user == null) {
-                log.warn("User not found for ID: {}", userId);
+                log.warn("User를 찾을 수 없습니다: {}", userId);
                 return;
             }
 
@@ -132,9 +129,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            log.debug("Authentication set for user: {} (ID: {})", username, userId);
+            log.debug("유저 {}의 인증 설정을 성공했습니다. (ID: {})", username, userId);
         } catch (Exception e) {
-            log.error("Error setting authentication: {}", e.getMessage());
+            log.error("인증을 설정하는데 실패했습니다: {}", e.getMessage());
             SecurityContextHolder.clearContext();
         }
     }
