@@ -46,12 +46,11 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         try {
             // CustomUserDetails에서 User 정보 직접 가져오기
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            User user = userDetails.getUser();
 
-            Long userId = user.getId();
-            String username = user.getUsername();
-            String nickname = user.getNickname();
-            String role = user.getRole().name();
+            Long userId = userDetails.getUserId();
+            String username = userDetails.getUsername();
+            String nickname = userDetails.getNickname();
+            String role = userDetails.getRole();
 
             // JWT (Access / Refresh) 발급
             String accessToken = jwtUtil.createAccessToken(userId, username, nickname, role);

@@ -26,7 +26,6 @@ public class CustomUserDetails implements UserDetails, CredentialsContainer {
         this.password = user.getPassword();
         this.nickname = user.getNickname();
         this.role = user.getRole().name();
-
     }
 
     @Override
