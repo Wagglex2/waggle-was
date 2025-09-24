@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
  *   <li>deadline : 모집 마감일</li>
  *   <li>{@link RecruitmentStatus} : 모집 상태 (기본값: RECRUITING)</li>
  *   <li>createdAt : 공고 생성 시각 (JPA Auditing)</li>
+ *   <li>updatedAt : 공고 수정 시각 (JPA Auditing)</li>
  *   <li>viewCount : 조회수 (기본값: 0)</li>
  * </ul>
  *
@@ -66,7 +67,7 @@ public abstract class BaseRecruitment {
     @CreatedDate
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false, insertable = false)
+    @Column(name = "updated_at", nullable = false)
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
