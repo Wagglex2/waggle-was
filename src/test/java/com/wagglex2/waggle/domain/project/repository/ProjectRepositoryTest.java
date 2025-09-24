@@ -1,11 +1,8 @@
 package com.wagglex2.waggle.domain.project.repository;
 
-import com.wagglex2.waggle.domain.common.type.Period;
-import com.wagglex2.waggle.domain.common.type.PositionType;
-import com.wagglex2.waggle.domain.common.type.Skill;
+import com.wagglex2.waggle.domain.common.type.*;
 import com.wagglex2.waggle.domain.project.entity.Project;
 import com.wagglex2.waggle.domain.project.type.MeetingType;
-import com.wagglex2.waggle.domain.project.type.Position;
 import com.wagglex2.waggle.domain.project.type.ProjectPurpose;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,8 +35,8 @@ class ProjectRepositoryTest {
                 .purpose(ProjectPurpose.HACKATHON)
                 .meetingType(MeetingType.HYBRID)
                 .positions(Arrays.asList(
-                        new Position(PositionType.FRONT_END, 2),
-                        new Position(PositionType.BACK_END, 3)
+                        new PositionParticipantInfo(PositionType.FRONT_END, new ParticipantInfo(3)),
+                        new PositionParticipantInfo(PositionType.BACK_END, new ParticipantInfo(3))
                 ))
                 .skills(Arrays.asList(Skill.REACT, Skill.SPRING_BOOT))
                 .grades(Arrays.asList(3, 4))

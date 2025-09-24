@@ -2,14 +2,12 @@ package com.wagglex2.waggle.domain.project.entity;
 
 import com.wagglex2.waggle.domain.common.type.*;
 import com.wagglex2.waggle.domain.project.type.MeetingType;
-import com.wagglex2.waggle.domain.project.type.Position;
 import com.wagglex2.waggle.domain.project.type.ProjectPurpose;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -26,15 +24,14 @@ class ProjectTest {
         ProjectPurpose purpose = ProjectPurpose.HACKATHON;
         MeetingType meetingType = MeetingType.HYBRID;
 
-        List<Position> positions = new ArrayList<>();
-        positions.add(new Position(PositionType.FRONT_END, 2));
-        positions.add(new Position(PositionType.BACK_END, 3));
+        List<PositionParticipantInfo> positions = Arrays.asList(
+                new PositionParticipantInfo(PositionType.FRONT_END, new ParticipantInfo(3)),
+                new PositionParticipantInfo(PositionType.BACK_END, new ParticipantInfo(3))
+        );
 
-        List<Skill> skills = new ArrayList<>();
-        skills.add(Skill.REACT);
-        skills.add(Skill.SPRING_BOOT);
-
+        List<Skill> skills = Arrays.asList(Skill.REACT, Skill.SPRING_BOOT);
         List<Integer> grades = Arrays.asList(3, 4);
+
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = LocalDate.now().plusDays(10);
         Period period = new Period(startDate, endDate);
