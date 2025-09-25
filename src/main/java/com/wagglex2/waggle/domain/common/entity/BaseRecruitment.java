@@ -44,6 +44,10 @@ public abstract class BaseRecruitment {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "user_id", referencedColumnName = "id",
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT), nullable = false
+    )
     private User user;
 
     @Column(nullable = false)
