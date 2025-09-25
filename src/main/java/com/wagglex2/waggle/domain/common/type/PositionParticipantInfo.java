@@ -5,6 +5,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 /**
@@ -26,9 +28,11 @@ import lombok.*;
 @Getter
 @Embeddable
 public class PositionParticipantInfo {
+    @NotNull(message = "포지션이 누락되었습니다.")
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private final PositionType position;
 
+    @Valid
     private ParticipantInfo participantInfo;
 }

@@ -2,6 +2,7 @@ package com.wagglex2.waggle.domain.common.type;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import jakarta.validation.constraints.Min;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,9 +25,11 @@ import lombok.NoArgsConstructor;
 @Getter
 @Embeddable
 public class ParticipantInfo {
+    @Min(value = 1, message = "모집 인원수는 1 이상이어야 합니다.")
     @Column(name = "max_participants", nullable = false)
     private int maxParticipants;
 
+    @Min(value = 0, message = "현재 인원수는 0 이상이어야 합니다.")
     @Column(name = "curr_participants", nullable = false)
     private int currParticipants = 0;
 
