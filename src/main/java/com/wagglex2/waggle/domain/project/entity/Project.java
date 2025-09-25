@@ -53,7 +53,6 @@ public class Project extends BaseRecruitment {
     )
     private List<PositionParticipantInfo> positions = new ArrayList<>();
 
-    @Column(name = "skill")
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "recruitment_skills",
@@ -61,7 +60,6 @@ public class Project extends BaseRecruitment {
     )
     private List<Skill> skills = new ArrayList<>();
 
-    @Column(name = "grade")
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "recruitment_grades",
