@@ -17,8 +17,8 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 public class ProjectCreationRequestDto extends BaseRecruitmentRequestDto {
@@ -30,14 +30,14 @@ public class ProjectCreationRequestDto extends BaseRecruitmentRequestDto {
 
     @NotEmpty(message = "포지션 정보가 누락되었습니다.")
     @Valid
-    private final List<PositionParticipantInfo> positions;
+    private final Set<PositionParticipantInfo> positions;
 
     @NotEmpty(message = "기술 스택이 누락되었습니다.")
-    private final List<Skill> skills;
+    private final Set<Skill> skills;
 
     @NotEmpty(message = "모집 학년이 누락되었습니다.")
     @Valid
-    private final List<GradeRequestDto> grades;
+    private final Set<GradeRequestDto> grades;
 
     @Valid
     private final Period period;
@@ -45,8 +45,8 @@ public class ProjectCreationRequestDto extends BaseRecruitmentRequestDto {
     public ProjectCreationRequestDto(
             String title, String content, LocalDateTime deadline,
             ProjectPurpose purpose, MeetingType meetingType,
-            List<PositionParticipantInfo> positions,
-            List<Skill> skills, List<GradeRequestDto> grades, Period period
+            Set<PositionParticipantInfo> positions,
+            Set<Skill> skills, Set<GradeRequestDto> grades, Period period
     ) {
         super(title, content, deadline);
         this.purpose = purpose;
@@ -58,7 +58,7 @@ public class ProjectCreationRequestDto extends BaseRecruitmentRequestDto {
     }
 
     public static Project toEntity(User user, ProjectCreationRequestDto dto) {
-        List<Integer> grades = new ArrayList<>();
+        Set<Integer> grades = new HashSet<>();
 
         for (GradeRequestDto g : dto.getGrades()) {
             grades.add(g.grade());

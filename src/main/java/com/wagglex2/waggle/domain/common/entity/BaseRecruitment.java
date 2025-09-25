@@ -33,7 +33,7 @@ import java.time.LocalDateTime;
  * @see Project
  * @author 오재민
  */
-@Entity
+@Entity(name = "base_recruitments")
 @Inheritance(strategy = InheritanceType.JOINED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter

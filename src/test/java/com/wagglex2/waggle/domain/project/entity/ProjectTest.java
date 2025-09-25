@@ -8,8 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -24,13 +23,15 @@ class ProjectTest {
         ProjectPurpose purpose = ProjectPurpose.HACKATHON;
         MeetingType meetingType = MeetingType.HYBRID;
 
-        List<PositionParticipantInfo> positions = Arrays.asList(
+
+
+        Set<PositionParticipantInfo> positions = Set.of(
                 new PositionParticipantInfo(PositionType.FRONT_END, new ParticipantInfo(3)),
                 new PositionParticipantInfo(PositionType.BACK_END, new ParticipantInfo(3))
         );
 
-        List<Skill> skills = Arrays.asList(Skill.REACT, Skill.SPRING_BOOT);
-        List<Integer> grades = Arrays.asList(3, 4);
+        Set<Skill> skills = Set.of(Skill.REACT, Skill.SPRING_BOOT);
+        Set<Integer> grades = Set.of(3, 4);
 
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = LocalDate.now().plusDays(10);

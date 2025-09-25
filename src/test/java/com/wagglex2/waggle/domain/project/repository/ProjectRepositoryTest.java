@@ -11,7 +11,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -34,12 +34,12 @@ class ProjectRepositoryTest {
                 .content("카카오에서 개최하는 해커톤 같이 할 사람 구해요.")
                 .purpose(ProjectPurpose.HACKATHON)
                 .meetingType(MeetingType.HYBRID)
-                .positions(Arrays.asList(
+                .positions(Set.of(
                         new PositionParticipantInfo(PositionType.FRONT_END, new ParticipantInfo(3)),
                         new PositionParticipantInfo(PositionType.BACK_END, new ParticipantInfo(3))
                 ))
-                .skills(Arrays.asList(Skill.REACT, Skill.SPRING_BOOT))
-                .grades(Arrays.asList(3, 4))
+                .skills(Set.of(Skill.REACT, Skill.SPRING_BOOT))
+                .grades(Set.of(3, 4))
                 .period(period)
                 .deadline(deadline)
                 .build();

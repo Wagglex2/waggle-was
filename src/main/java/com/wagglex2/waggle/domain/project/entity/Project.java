@@ -12,8 +12,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 프로젝트 모집 공고 엔티티.
@@ -34,7 +34,7 @@ import java.util.List;
  * @author 오재민
  * @see BaseRecruitment
  */
-@Entity
+@Entity(name = "projects")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Project extends BaseRecruitment {
@@ -51,21 +51,22 @@ public class Project extends BaseRecruitment {
             name = "recruitment_positions",
             joinColumns = @JoinColumn(name = "recruitment_id", referencedColumnName = "id")
     )
-    private List<PositionParticipantInfo> positions = new ArrayList<>();
+    private Set<PositionParticipantInfo> positions = new HashSet<>();
 
+    @Enumerated
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "recruitment_skills",
             joinColumns = @JoinColumn(name = "recruitment_id", referencedColumnName = "id")
     )
-    private List<Skill> skills = new ArrayList<>();
+    private Set<Skill> skills = new HashSet<>();
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "recruitment_grades",
             joinColumns = @JoinColumn(name = "recruitment_id", referencedColumnName = "id")
     )
-    private List<Integer> grades = new ArrayList<>();
+    private Set<Integer> grades = new HashSet<>();
 
     @Embedded
     private Period period;
@@ -74,7 +75,7 @@ public class Project extends BaseRecruitment {
     public Project(
             User user, String title, String content, LocalDateTime deadline,
             ProjectPurpose purpose, MeetingType meetingType,
-            List<PositionParticipantInfo> positions, List<Skill> skills, List<Integer> grades,
+            Set<PositionParticipantInfo> positions, Set<Skill> skills, Set<Integer> grades,
             Period period
     ) {
         super(user, RecruitmentCategory.PROJECT, title, content, deadline);
