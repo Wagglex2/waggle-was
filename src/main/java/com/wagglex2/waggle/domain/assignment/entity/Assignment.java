@@ -1,10 +1,18 @@
 package com.wagglex2.waggle.domain.assignment.entity;
 
 import com.wagglex2.waggle.domain.common.entity.BaseRecruitment;
-import jakarta.persistence.Entity;
+import com.wagglex2.waggle.domain.common.type.RecruitmentCategory;
+import com.wagglex2.waggle.domain.common.type.RecruitmentParticipants;
+import com.wagglex2.waggle.domain.user.entity.User;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 과제 모집 공고 엔티티.
@@ -26,17 +34,37 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Assignment extends BaseRecruitment {
+    @Column(nullable = false)
     private String department;
+
+    @Column(nullable = false)
     private String lecture;
+
+    @Column(nullable = false)
     private String lectureCode;
 
+    @Embedded
+    private RecruitmentParticipants participants;
+
+    @Column(name = "grade")
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(
+            name = "recruitment_grades",
+            joinColumns = @JoinColumn(name = "recruitment_id", referencedColumnName = "id")
+    )
+    private List<Integer> grades = new ArrayList<>();
+
+    @Builder
     public Assignment(
-            String department,
-            String lecture,
-            String lectureCode
+            User user, String title, String content, LocalDateTime deadline,
+            String department, String lecture, String lectureCode,
+            RecruitmentParticipants participants, List<Integer> grades
     ) {
+        super(user, RecruitmentCategory.ASSIGNMENT, title, content, deadline);
         this.department = department;
         this.lecture = lecture;
         this.lectureCode = lectureCode;
+        this.participants = participants;
+        this.grades = grades;
     }
 }
