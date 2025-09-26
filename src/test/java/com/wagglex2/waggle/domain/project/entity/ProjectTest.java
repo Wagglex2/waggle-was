@@ -1,20 +1,14 @@
 package com.wagglex2.waggle.domain.project.entity;
 
-import com.wagglex2.waggle.domain.common.type.PositionType;
-import com.wagglex2.waggle.domain.common.type.RecruitmentCategory;
-import com.wagglex2.waggle.domain.common.type.RecruitmentStatus;
-import com.wagglex2.waggle.domain.common.type.Skill;
+import com.wagglex2.waggle.domain.common.type.*;
 import com.wagglex2.waggle.domain.project.type.MeetingType;
-import com.wagglex2.waggle.domain.project.type.Position;
 import com.wagglex2.waggle.domain.project.type.ProjectPurpose;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -29,17 +23,19 @@ class ProjectTest {
         ProjectPurpose purpose = ProjectPurpose.HACKATHON;
         MeetingType meetingType = MeetingType.HYBRID;
 
-        List<Position> positions = new ArrayList<>();
-        positions.add(new Position(PositionType.FRONT_END, 2));
-        positions.add(new Position(PositionType.BACK_END, 3));
 
-        List<Skill> skills = new ArrayList<>();
-        skills.add(Skill.REACT);
-        skills.add(Skill.SPRING_BOOT);
 
-        List<Integer> grades = Arrays.asList(3, 4);
+        Set<PositionParticipantInfo> positions = Set.of(
+                new PositionParticipantInfo(PositionType.FRONT_END, new ParticipantInfo(3)),
+                new PositionParticipantInfo(PositionType.BACK_END, new ParticipantInfo(3))
+        );
+
+        Set<Skill> skills = Set.of(Skill.REACT, Skill.SPRING_BOOT);
+        Set<Integer> grades = Set.of(3, 4);
+
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = LocalDate.now().plusDays(10);
+        Period period = new Period(startDate, endDate);
         LocalDateTime deadline = LocalDateTime.now().minusDays(3);
 
         // when
@@ -51,8 +47,7 @@ class ProjectTest {
                 .positions(positions)
                 .skills(skills)
                 .grades(grades)
-                .startDate(startDate)
-                .endDate(endDate)
+                .period(period)
                 .deadline(deadline)
                 .build();
 
@@ -65,8 +60,7 @@ class ProjectTest {
         assertThat(project.getPositions()).containsExactlyInAnyOrderElementsOf(positions);
         assertThat(project.getSkills()).containsExactlyInAnyOrderElementsOf(skills);
         assertThat(project.getGrades()).containsExactlyInAnyOrderElementsOf(grades);
-        assertThat(project.getStartDate()).isEqualTo(startDate);
-        assertThat(project.getEndDate()).isEqualTo(endDate);
+        assertThat(project.getPeriod()).isEqualTo(period);
         assertThat(project.getDeadline()).isEqualTo(deadline);
         assertThat(project.getStatus()).isEqualTo(RecruitmentStatus.RECRUITING);
         assertThat(project.getViewCount()).isEqualTo(0);
