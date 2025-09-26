@@ -34,7 +34,8 @@ import java.util.Set;
  * @author 오재민
  * @see BaseRecruitment
  */
-@Entity(name = "projects")
+@Table(name = "projects")
+@Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Project extends BaseRecruitment {
@@ -53,7 +54,7 @@ public class Project extends BaseRecruitment {
     )
     private Set<PositionParticipantInfo> positions = new HashSet<>();
 
-    @Enumerated
+    @Enumerated(value = EnumType.STRING)
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "recruitment_skills",
