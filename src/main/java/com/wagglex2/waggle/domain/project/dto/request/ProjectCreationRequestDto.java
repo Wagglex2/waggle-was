@@ -78,7 +78,7 @@ public class ProjectCreationRequestDto extends BaseRecruitmentRequestDto {
                 .build();
     }
 
-    private void validateDeadline() {
+    public void validate() {
         if (getDeadline().isAfter(
                 ChronoLocalDateTime.from(period.endDate()))
         ) {
@@ -87,10 +87,5 @@ public class ProjectCreationRequestDto extends BaseRecruitmentRequestDto {
                     "마감일은 종료일 이전이어야 합니다."
             );
         }
-    }
-
-    public void validate() {
-        validateDeadline();
-        period.validate();
     }
 }
