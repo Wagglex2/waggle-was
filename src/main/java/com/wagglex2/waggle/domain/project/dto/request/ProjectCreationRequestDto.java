@@ -17,8 +17,8 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDateTime;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 public class ProjectCreationRequestDto extends BaseRecruitmentRequestDto {
@@ -36,6 +36,7 @@ public class ProjectCreationRequestDto extends BaseRecruitmentRequestDto {
     private final Set<Skill> skills;
 
     @NotEmpty(message = "모집 학년이 누락되었습니다.")
+    @Size(max = 4, message = "최대 4개의 학년만 선택할 수 있습니다.")
     @Valid
     private final Set<GradeRequestDto> grades;
 
@@ -58,11 +59,9 @@ public class ProjectCreationRequestDto extends BaseRecruitmentRequestDto {
     }
 
     public static Project toEntity(User user, ProjectCreationRequestDto dto) {
-        Set<Integer> grades = new HashSet<>();
-
-        for (GradeRequestDto g : dto.getGrades()) {
-            grades.add(g.grade());
-        }
+        Set<Integer> grades = dto.getGrades().stream()
+                .map(GradeRequestDto::grade)
+                .collect(Collectors.toSet());
 
         return Project.builder()
                 .user(user)
