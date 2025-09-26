@@ -18,21 +18,21 @@ import java.util.Set;
 @Getter
 public class AssignmentCreationRequestDto extends BaseRecruitmentRequestDto {
     @NotBlank(message = "학과명이 누락되었습니다.")
-    private String department;
+    private final String department;
 
     @NotBlank(message = "과목명이 누락되었습니다.")
-    private String lecture;
+    private final String lecture;
 
     @NotBlank(message = "과목코드가 누락되었습니다.")
-    private String lectureCode;
+    private final String lectureCode;
 
     @NotNull(message = "모집 인원이 누락되었습니다.")
     @Valid
-    private ParticipantInfo participants;
+    private final ParticipantInfo participants;
 
     @NotEmpty(message = "모집 학년이 누락되었습니다.")
     @Valid
-    private Set<GradeRequestDto> grades;
+    private final Set<GradeRequestDto> grades;
 
     public AssignmentCreationRequestDto(
             String title, String content, LocalDateTime deadline,

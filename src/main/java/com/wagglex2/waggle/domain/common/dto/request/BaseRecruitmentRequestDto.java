@@ -1,8 +1,6 @@
 package com.wagglex2.waggle.domain.common.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -18,6 +16,7 @@ public abstract class BaseRecruitmentRequestDto {
     private final String content;
 
     @NotNull(message = "마감일이 누락되었습니다.")
+    @FutureOrPresent(message = "마감일은 오늘 또는 미래여야 합니다.")
     private final LocalDateTime deadline;
 
     protected BaseRecruitmentRequestDto(String title, String content, LocalDateTime deadline) {
