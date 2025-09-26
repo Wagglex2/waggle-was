@@ -1,8 +1,8 @@
 package com.wagglex2.waggle.domain.assignment.entity;
 
 import com.wagglex2.waggle.domain.common.entity.BaseRecruitment;
+import com.wagglex2.waggle.domain.common.type.ParticipantInfo;
 import com.wagglex2.waggle.domain.common.type.RecruitmentCategory;
-import com.wagglex2.waggle.domain.common.type.RecruitmentParticipants;
 import com.wagglex2.waggle.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -11,8 +11,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 과제 모집 공고 엔티티.
@@ -44,21 +45,20 @@ public class Assignment extends BaseRecruitment {
     private String lectureCode;
 
     @Embedded
-    private RecruitmentParticipants participants;
+    private ParticipantInfo participants;
 
-    @Column(name = "grade")
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "recruitment_grades",
             joinColumns = @JoinColumn(name = "recruitment_id", referencedColumnName = "id")
     )
-    private List<Integer> grades = new ArrayList<>();
+    private Set<Integer> grades = new HashSet<>();
 
     @Builder
     public Assignment(
             User user, String title, String content, LocalDateTime deadline,
             String department, String lecture, String lectureCode,
-            RecruitmentParticipants participants, List<Integer> grades
+            ParticipantInfo participants, Set<Integer> grades
     ) {
         super(user, RecruitmentCategory.ASSIGNMENT, title, content, deadline);
         this.department = department;
