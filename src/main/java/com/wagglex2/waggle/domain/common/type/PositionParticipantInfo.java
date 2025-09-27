@@ -1,10 +1,7 @@
 package com.wagglex2.waggle.domain.common.type;
 
 import com.wagglex2.waggle.domain.project.entity.Project;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -34,5 +31,6 @@ public class PositionParticipantInfo {
     private final PositionType position;
 
     @Valid
+    @Embedded
     private ParticipantInfo participantInfo;
 }
