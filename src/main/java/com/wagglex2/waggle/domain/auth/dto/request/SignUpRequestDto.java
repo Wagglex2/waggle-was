@@ -8,6 +8,7 @@ import com.wagglex2.waggle.domain.user.entity.User;
 import com.wagglex2.waggle.domain.user.entity.type.University;
 import com.wagglex2.waggle.domain.user.entity.type.UserRoleType;
 import jakarta.validation.constraints.*;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Set;
@@ -36,8 +37,7 @@ public record SignUpRequestDto(
         String email,
 
         @NotNull(message = "학년이 누락되었습니다.")
-        @Min(value = 1, message = "학년은 1학년 이상이어야 합니다.")
-        @Max(value = 4, message = "학년은 4학년 이하여야 합니다.")
+        @Range(min = 1, max = 4, message = "모집 학년은 1 이상 4 이하여야 합니다.")
         Integer grade,
 
         @NotNull(message = "포지션이 누락되었습니다.")

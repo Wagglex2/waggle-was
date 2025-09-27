@@ -144,7 +144,7 @@ public class AuthServiceImpl implements AuthService {
     public void verifyCode(String toEmail, String inputCode) {
 
         // 1. 이메일 및 입력된 인증번호 null 체크
-        if (toEmail == null || inputCode == null) {
+        if (toEmail.isBlank() || inputCode.isBlank()) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "이메일 또는 인증번호가 누락되었습니다.");
         }
 
@@ -166,46 +166,6 @@ public class AuthServiceImpl implements AuthService {
 
         // 5. 검증 시 Redis에서 해당 키 삭제
         redisTemplate.delete(key);
-    }
-
-    /**
-     * 회원가입을 처리한다.
-     *
-     * <p>처리 순서:</p>
-     * <ol>
-     *     <li>아이디(username) 중복 검사</li>
-     *     <li>이메일(email) 중복 검사</li>
-     *     <li>닉네임(nickname) 중복 검사</li>
-     *     <li>DTO를 User 엔티티로 변환 (비밀번호 암호화 포함)</li>
-     *     <li>User 저장 및 생성된 식별자(ID) 반환</li>
-     * </ol>
-     *
-     * @param dto 회원가입 요청 DTO
-     * @return 생성된 User의 식별자(ID)
-     * @throws BusinessException
-     *         <ul>
-     *             <li>{@link ErrorCode#DUPLICATED_USERNAME} : 이미 존재하는 아이디</li>
-     *             <li>{@link ErrorCode#DUPLICATED_EMAIL} : 이미 등록된 이메일</li>
-     *             <li>{@link ErrorCode#DUPLICATED_NICKNAME} : 이미 사용 중인 닉네임</li>
-     *         </ul>
-     */
-    @Override
-    @Transactional
-    public Long signUp(SignUpRequestDto dto) {
-        if (userService.existsByUsername(dto.username())) {
-            throw new BusinessException(ErrorCode.DUPLICATED_USERNAME);
-        }
-
-        if (userService.existsByEmail(dto.email())) {
-            throw new BusinessException(ErrorCode.DUPLICATED_EMAIL);
-        }
-
-        if (userService.existsByNickname(dto.nickname())) {
-            throw new BusinessException(ErrorCode.DUPLICATED_NICKNAME);
-        }
-
-        User user = dto.toEntity(passwordEncoder);
-        return userService.save(user);
     }
 
     /**
