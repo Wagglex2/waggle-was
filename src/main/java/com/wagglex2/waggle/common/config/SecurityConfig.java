@@ -1,6 +1,8 @@
 package com.wagglex2.waggle.common.config;
 
 import com.wagglex2.waggle.common.security.filter.JwtFilter;
+import com.wagglex2.waggle.common.security.handler.CustomAccessDeniedHandler;
+import com.wagglex2.waggle.common.security.handler.CustomAuthenticationEntryPoint;
 import com.wagglex2.waggle.common.security.handler.LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +23,8 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
     private final LoginSuccessHandler loginSuccessHandler;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -46,6 +50,10 @@ public class SecurityConfig {
                 // 세션을 사용하지 않음 (JWT 기반)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .exceptionHandling(exception -> exception
+                        .accessDeniedHandler(customAccessDeniedHandler)
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
                 )
                 .csrf(AbstractHttpConfigurer::disable) // API 서버이므로 CSRF 비활성화
                 .build();
