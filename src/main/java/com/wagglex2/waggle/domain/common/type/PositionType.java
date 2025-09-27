@@ -13,7 +13,6 @@ public enum PositionType {
     BACK_END("백엔드"),
     DATA("데이터"),
     AI("AI"),
-    DEVOPS("데브옵스"),
     GAME("게임"),
     PLANNER("기획"),
     DESIGNER("디자인");

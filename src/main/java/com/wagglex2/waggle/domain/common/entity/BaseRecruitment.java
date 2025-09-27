@@ -7,6 +7,7 @@ import com.wagglex2.waggle.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -25,12 +26,14 @@ import java.time.LocalDateTime;
  *   <li>deadline : 모집 마감일</li>
  *   <li>{@link RecruitmentStatus} : 모집 상태 (기본값: RECRUITING)</li>
  *   <li>createdAt : 공고 생성 시각 (JPA Auditing)</li>
+ *   <li>updatedAt : 공고 수정 시각 (JPA Auditing)</li>
  *   <li>viewCount : 조회수 (기본값: 0)</li>
  * </ul>
  *
  * @see Project
  * @author 오재민
  */
+@Table(name = "base_recruitments")
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -42,6 +45,10 @@ public abstract class BaseRecruitment {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "user_id", referencedColumnName = "id",
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT), nullable = false
+    )
     private User user;
 
     @Column(nullable = false)
@@ -64,6 +71,10 @@ public abstract class BaseRecruitment {
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreatedDate
     private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
 
     @Column(name = "view_count", nullable = false)
     private int viewCount = 0;

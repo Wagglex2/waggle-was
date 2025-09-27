@@ -18,6 +18,7 @@ public enum ErrorCode {
     MISMATCHED_PASSWORD(HttpStatus.BAD_REQUEST, "MISMATCHED_PASSWORD", "비밀번호와 비밀번호 확인이 일치하지 않습니다."),
     DUPLICATED_EMAIL(HttpStatus.CONFLICT, "DUPLICATED_EMAIL", "이미 가입된 이메일입니다."),
     DUPLICATED_NICKNAME(HttpStatus.CONFLICT, "DUPLICATED_NICKNAME", "이미 존재하는 닉네임입니다."),
+    INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "INVALID_DATE_RANGE", "유효하지 않은 날짜 범위입니다."),
 
     // 401
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "인증이 필요합니다."),
