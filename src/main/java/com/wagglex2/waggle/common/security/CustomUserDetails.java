@@ -19,6 +19,15 @@ public class CustomUserDetails implements UserDetails, CredentialsContainer {
     private final String nickname;
     private final String role;
 
+    // JWT에서 직접 생성하는 생성자
+    public CustomUserDetails(Long userId, String username, String nickname, String role) {
+        this.userId = userId;
+        this.username = username;
+        this.nickname = nickname;
+        this.role = role;
+        this.password = null;
+    }
+
     // 생성자
     public CustomUserDetails(User user) {
         this.userId = user.getId();
