@@ -1,19 +1,19 @@
 package com.wagglex2.waggle.domain.project.entity;
 
 import com.wagglex2.waggle.domain.common.entity.BaseRecruitment;
+import com.wagglex2.waggle.domain.common.type.Period;
+import com.wagglex2.waggle.domain.common.type.PositionParticipantInfo;
 import com.wagglex2.waggle.domain.common.type.RecruitmentCategory;
 import com.wagglex2.waggle.domain.common.type.Skill;
 import com.wagglex2.waggle.domain.project.type.MeetingType;
-import com.wagglex2.waggle.domain.project.type.Position;
 import com.wagglex2.waggle.domain.project.type.ProjectPurpose;
 import com.wagglex2.waggle.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 프로젝트 모집 공고 엔티티.
@@ -25,15 +25,16 @@ import java.util.List;
  * <ul>
  *   <li>{@link ProjectPurpose} : 프로젝트 목적</li>
  *   <li>{@link MeetingType} : 모임 방식 (온/오프라인)</li>
- *   <li>{@link Position} : 모집 포지션 리스트 (ElementCollection)</li>
+ *   <li>{@link PositionParticipantInfo} : 모집 포지션 리스트 (ElementCollection)</li>
  *   <li>{@link Skill} : 요구 기술 스택 (ElementCollection)</li>
  *   <li>grades : 지원 가능 학년 (ElementCollection)</li>
- *   <li>startDate, endDate : 프로젝트 기간</li>
+ *   <li>{@link Period} : 프로젝트 기간</li>
  * </ul>
  *
  * @author 오재민
  * @see BaseRecruitment
  */
+@Table(name = "projects")
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -51,36 +52,32 @@ public class Project extends BaseRecruitment {
             name = "recruitment_positions",
             joinColumns = @JoinColumn(name = "recruitment_id", referencedColumnName = "id")
     )
-    private List<Position> positions = new ArrayList<>();
+    private Set<PositionParticipantInfo> positions = new HashSet<>();
 
-    @Column(name = "skill")
+    @Enumerated(value = EnumType.STRING)
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "recruitment_skills",
             joinColumns = @JoinColumn(name = "recruitment_id", referencedColumnName = "id")
     )
-    private List<Skill> skills = new ArrayList<>();
+    private Set<Skill> skills = new HashSet<>();
 
-    @Column(name = "grade")
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "recruitment_grades",
             joinColumns = @JoinColumn(name = "recruitment_id", referencedColumnName = "id")
     )
-    private List<Integer> grades = new ArrayList<>();
+    private Set<Integer> grades = new HashSet<>();
 
-    @Column(name = "start_date", nullable = false)
-    private LocalDate startDate;
-
-    @Column(name = "end_date", nullable = false)
-    private LocalDate endDate;
+    @Embedded
+    private Period period;
 
     @Builder
     public Project(
             User user, String title, String content, LocalDateTime deadline,
             ProjectPurpose purpose, MeetingType meetingType,
-            List<Position> positions, List<Skill> skills, List<Integer> grades,
-            LocalDate startDate, LocalDate endDate
+            Set<PositionParticipantInfo> positions, Set<Skill> skills, Set<Integer> grades,
+            Period period
     ) {
         super(user, RecruitmentCategory.PROJECT, title, content, deadline);
         this.purpose = purpose;
@@ -88,7 +85,6 @@ public class Project extends BaseRecruitment {
         this.positions = positions;
         this.skills = skills;
         this.grades = grades;
-        this.startDate = startDate;
-        this.endDate = endDate;
+        this.period = period;
     }
 }
