@@ -3,9 +3,9 @@ package com.wagglex2.waggle.common.controller;
 import com.wagglex2.waggle.common.error.ErrorCode;
 import com.wagglex2.waggle.common.exception.BusinessException;
 import com.wagglex2.waggle.common.response.ApiResponse;
+import com.wagglex2.waggle.common.response.ValidationError;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -48,16 +48,14 @@ public class GlobalExceptionHandler {
      * @author 오재민
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        List<String> message = ex.getBindingResult()
+    public ResponseEntity<ApiResponse<List<ValidationError>>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        List<ValidationError> errorInfo = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(FieldError::getDefaultMessage)
+                .map(error -> new ValidationError(error.getField(), error.getDefaultMessage()))
                 .toList();
 
-        String joinedMsg = String.join(",", message);
-
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(ErrorCode.VALIDATION_FAILED.getCode(), joinedMsg));
+                .body(ApiResponse.error(ErrorCode.VALIDATION_FAILED, errorInfo));
     }
 }
