@@ -5,6 +5,8 @@ import com.wagglex2.waggle.common.exception.BusinessException;
 import com.wagglex2.waggle.domain.common.type.PositionType;
 import com.wagglex2.waggle.domain.common.type.Skill;
 import com.wagglex2.waggle.domain.user.entity.User;
+import com.wagglex2.waggle.domain.user.entity.type.University;
+import com.wagglex2.waggle.domain.user.entity.type.UserRoleType;
 import jakarta.validation.constraints.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -60,10 +62,12 @@ public record SignUpRequestDto(
                 .password(passwordEncoder.encode(password))
                 .nickname(nickname)
                 .email(email)
+                .university(University.fromEmail(email))
                 .grade(grade)
                 .position(position)
                 .skills(skills)
                 .shortIntro(shortIntro)
+                .role(UserRoleType.ROLE_USER)
                 .build();
     }
 }
