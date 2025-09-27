@@ -3,6 +3,7 @@ package com.wagglex2.waggle.domain.auth.service.serviceImpl;
 import com.wagglex2.waggle.common.error.ErrorCode;
 import com.wagglex2.waggle.common.exception.BusinessException;
 import com.wagglex2.waggle.common.security.jwt.JwtUtil;
+import com.wagglex2.waggle.domain.auth.dto.request.SignUpRequestDto;
 import com.wagglex2.waggle.domain.auth.service.AuthService;
 import com.wagglex2.waggle.domain.user.entity.User;
 import com.wagglex2.waggle.domain.user.service.UserService;
@@ -19,6 +20,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -48,6 +50,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final UserService userService;
     private final JavaMailSender mailSender;
+    private final PasswordEncoder passwordEncoder;
     private final RedisTemplate<String, String> redisTemplate;
 
     /**
@@ -64,7 +67,6 @@ public class AuthServiceImpl implements AuthService {
      * @throws BusinessException 이메일 발송 실패 시 {@link ErrorCode#EMAIL_SEND_FAILED}
      */
     @Override
-    @Transactional
     public void sendAuthCode(String toEmail) {
 
         // 1. 랜덤 6자리 인증번호 생성
@@ -139,7 +141,6 @@ public class AuthServiceImpl implements AuthService {
      *         </ul>
      */
     @Override
-    @Transactional
     public void verifyCode(String toEmail, String inputCode) {
 
         // 1. 이메일 및 입력된 인증번호 null 체크
@@ -165,6 +166,46 @@ public class AuthServiceImpl implements AuthService {
 
         // 5. 검증 시 Redis에서 해당 키 삭제
         redisTemplate.delete(key);
+    }
+
+    /**
+     * 회원가입을 처리한다.
+     *
+     * <p>처리 순서:</p>
+     * <ol>
+     *     <li>아이디(username) 중복 검사</li>
+     *     <li>이메일(email) 중복 검사</li>
+     *     <li>닉네임(nickname) 중복 검사</li>
+     *     <li>DTO를 User 엔티티로 변환 (비밀번호 암호화 포함)</li>
+     *     <li>User 저장 및 생성된 식별자(ID) 반환</li>
+     * </ol>
+     *
+     * @param dto 회원가입 요청 DTO
+     * @return 생성된 User의 식별자(ID)
+     * @throws BusinessException
+     *         <ul>
+     *             <li>{@link ErrorCode#DUPLICATED_USERNAME} : 이미 존재하는 아이디</li>
+     *             <li>{@link ErrorCode#DUPLICATED_EMAIL} : 이미 등록된 이메일</li>
+     *             <li>{@link ErrorCode#DUPLICATED_NICKNAME} : 이미 사용 중인 닉네임</li>
+     *         </ul>
+     */
+    @Override
+    @Transactional
+    public Long signUp(SignUpRequestDto dto) {
+        if (userService.existsByUsername(dto.username())) {
+            throw new BusinessException(ErrorCode.DUPLICATED_USERNAME);
+        }
+
+        if (userService.existsByEmail(dto.email())) {
+            throw new BusinessException(ErrorCode.DUPLICATED_EMAIL);
+        }
+
+        if (userService.existsByNickname(dto.nickname())) {
+            throw new BusinessException(ErrorCode.DUPLICATED_NICKNAME);
+        }
+
+        User user = dto.toEntity(passwordEncoder);
+        return userService.save(user);
     }
 
     /**
@@ -235,7 +276,6 @@ public class AuthServiceImpl implements AuthService {
         SecureRandom random = new SecureRandom();
         return String.format("%06d", random.nextInt(1_000_000));
     }
-
 
     /**
      * 이메일 본문으로 사용될 HTML 템플릿을 생성한다.

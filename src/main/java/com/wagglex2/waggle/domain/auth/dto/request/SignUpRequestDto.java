@@ -4,7 +4,9 @@ import com.wagglex2.waggle.common.error.ErrorCode;
 import com.wagglex2.waggle.common.exception.BusinessException;
 import com.wagglex2.waggle.domain.common.type.PositionType;
 import com.wagglex2.waggle.domain.common.type.Skill;
+import com.wagglex2.waggle.domain.user.entity.User;
 import jakarta.validation.constraints.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Set;
 
@@ -51,5 +53,18 @@ public record SignUpRequestDto(
             throw new BusinessException(ErrorCode.MISMATCHED_PASSWORD);
         }
     }
-};
+
+    public User toEntity(PasswordEncoder passwordEncoder) {
+        return User.builder()
+                .username(username)
+                .password(passwordEncoder.encode(password))
+                .nickname(nickname)
+                .email(email)
+                .grade(grade)
+                .position(position)
+                .skills(skills)
+                .shortIntro(shortIntro)
+                .build();
+    }
+}
 

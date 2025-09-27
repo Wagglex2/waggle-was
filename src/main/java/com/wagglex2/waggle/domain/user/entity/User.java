@@ -5,7 +5,6 @@ import com.wagglex2.waggle.domain.common.type.Skill;
 import com.wagglex2.waggle.domain.user.entity.type.University;
 import com.wagglex2.waggle.domain.user.entity.type.UserRoleType;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -79,7 +78,6 @@ public class User {
     @Column(name = "skill", nullable = false)
     private Set<Skill> skills;
 
-    @Size(max = 100)
     @Column(nullable = false, columnDefinition = "TEXT")
     private String shortIntro;
 

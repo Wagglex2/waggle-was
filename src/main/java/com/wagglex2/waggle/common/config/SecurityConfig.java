@@ -32,13 +32,13 @@ public class SecurityConfig {
         return http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/v1/login",
-                                "/api/v1/signup"
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/sign-up"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        .loginProcessingUrl("/api/v1/login")
+                        .loginProcessingUrl("/api/v1/auth/login")
                         .successHandler(loginSuccessHandler)
                 )
                 // JWT Filter를 UsernamePasswordAuthenticationFilter 앞에 등록

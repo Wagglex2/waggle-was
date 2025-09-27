@@ -38,4 +38,16 @@ public class UserServiceImpl implements UserService {
     public boolean existsByUsername(String username) {
         return userRepository.existsByUsername(username);
     }
+
+    @Override
+    public boolean existsByNickname(String nickname) {
+        return userRepository.existsByNickname(nickname);
+    }
+
+    @Override
+    @Transactional
+    public Long save(User user) {
+        User saved = userRepository.save(user);
+        return saved.getId();
+    }
 }
