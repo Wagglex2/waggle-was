@@ -173,17 +173,25 @@ public class AuthServiceImpl implements AuthService {
      *
      * @param refreshToken 클라이언트가 보낸 Refresh Token (쿠키에서 추출)
      * @return 새롭게 발급된 Access/Refresh Token 쌍
-     * @throws BusinessException REFRESH_TOKEN_INVALID, REFRESH_TOKEN_MISMATCH, USER_NOT_FOUND
+     * @throws BusinessException REFRESH_TOKEN_NOT_FOUND, REFRESH_TOKEN_INVALID, REFRESH_TOKEN_TYPE_INVALID, REFRESH_TOKEN_MISMATCH, USER_NOT_FOUND
      */
     @Override
     public TokenPair reissueTokens(String refreshToken) {
 
         // 1. 토큰 유효성 및 타입 확인
-        if (!StringUtils.hasText(refreshToken)
-                || !jwtUtil.validateToken(refreshToken)
-                || !jwtUtil.isRefreshToken(refreshToken)) {
+        if (!StringUtils.hasText(refreshToken)) {
+            log.warn("리프레시 토큰을 찾을 수 없습니다.");
+            throw new BusinessException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
+        }
+
+        if (!jwtUtil.validateToken(refreshToken)) {
             log.warn("리프레시 토큰이 유효하지 않습니다.");
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_INVALID);
+        }
+
+        if (!jwtUtil.isRefreshToken(refreshToken)) {
+            log.warn("리프레시 토큰 타입이 일치하지 않습니다.");
+            throw new BusinessException(ErrorCode.REFRESH_TOKEN_TYPE_INVALID);
         }
 
         // 2. Redis에 저장된 토큰과 일치 여부 검증
