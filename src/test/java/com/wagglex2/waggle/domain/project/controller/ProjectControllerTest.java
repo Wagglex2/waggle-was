@@ -77,10 +77,7 @@ class ProjectControllerTest {
 
         // then
         // code, message 제외, data만 추출
-        String actualJson = objectMapper.readTree(responseJson)
-                .get("data")
-
-                .toString();
+        String actualJson = objectMapper.readTree(responseJson).get("data").toString();
         String expectedJson = objectMapper.writeValueAsString(responseDto);
         assertThat(actualJson).isEqualTo(expectedJson);
     }
