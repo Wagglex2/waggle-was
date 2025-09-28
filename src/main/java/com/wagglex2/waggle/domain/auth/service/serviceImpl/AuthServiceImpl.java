@@ -3,31 +3,25 @@ package com.wagglex2.waggle.domain.auth.service.serviceImpl;
 import com.wagglex2.waggle.common.error.ErrorCode;
 import com.wagglex2.waggle.common.exception.BusinessException;
 import com.wagglex2.waggle.common.security.jwt.JwtUtil;
-import com.wagglex2.waggle.domain.auth.dto.request.SignUpRequestDto;
+import com.wagglex2.waggle.domain.auth.dto.response.TokenPair;
 import com.wagglex2.waggle.domain.auth.service.AuthService;
 import com.wagglex2.waggle.domain.user.entity.User;
 import com.wagglex2.waggle.domain.user.service.UserService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.ResponseCookie;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.security.SecureRandom;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -38,8 +32,6 @@ public class AuthServiceImpl implements AuthService {
 
     // Token
     private static final String REFRESH_TOKEN_PREFIX = "RT:";
-    private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
-    private static final String ACCESS_TOKEN_COOKIE_NAME = "access_token";
 
     // Email
     @Value("${spring.mail.username}")
@@ -50,7 +42,6 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final UserService userService;
     private final JavaMailSender mailSender;
-    private final PasswordEncoder passwordEncoder;
     private final RedisTemplate<String, String> redisTemplate;
 
     /**
@@ -169,35 +160,33 @@ public class AuthServiceImpl implements AuthService {
     }
 
     /**
-     * Refresh Token을 검증하고 새로운 Access Token과 Refresh Token을 발급한다.
+     * Refresh Token을 검증하고 새로운 Access/Refresh Token을 발급한다.
      *
      * <p>처리 순서:</p>
      * <ol>
-     *     <li>쿠키에서 Refresh Token 추출</li>
-     *     <li>토큰 유효성 및 Redis 저장 토큰과의 일치 여부 확인</li>
-     *     <li>사용자 존재 여부 확인</li>
-     *     <li>Access Token과 Refresh Token 재발급</li>
-     *     <li>Redis에 Refresh Token 갱신</li>
-     *     <li>쿠키에 두 토큰 설정</li>
+     *   <li>Refresh Token 유효성 및 타입 확인</li>
+     *   <li>Redis에 저장된 토큰과 일치 여부 검증</li>
+     *   <li>사용자 존재 여부 확인</li>
+     *   <li>새로운 Access Token 및 Refresh Token 발급</li>
+     *   <li>Redis에 새로운 Refresh Token 갱신</li>
      * </ol>
      *
-     * @param request  Refresh Token을 담고 있는 HTTP 요청
-     * @param response 새로운 토큰을 쿠키로 담아 반환할 HTTP 응답
+     * @param refreshToken 클라이언트가 보낸 Refresh Token (쿠키에서 추출)
+     * @return 새롭게 발급된 Access/Refresh Token 쌍
      * @throws BusinessException REFRESH_TOKEN_INVALID, REFRESH_TOKEN_MISMATCH, USER_NOT_FOUND
      */
     @Override
-    public void issueNewTokens(HttpServletRequest request, HttpServletResponse response) {
+    public TokenPair reissueTokens(String refreshToken) {
 
-        // 1. Cookie로부터 Refresh Token 추출
-        String refreshToken = extractRefreshToken(request);
-
-        // 2. 토큰 유효성 검사
-        if (!StringUtils.hasText(refreshToken) || !jwtUtil.validateToken(refreshToken) || !jwtUtil.isRefreshToken(refreshToken)) {
+        // 1. 토큰 유효성 및 타입 확인
+        if (!StringUtils.hasText(refreshToken)
+                || !jwtUtil.validateToken(refreshToken)
+                || !jwtUtil.isRefreshToken(refreshToken)) {
             log.warn("리프레시 토큰이 유효하지 않습니다.");
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_INVALID);
         }
 
-        // 3. Redis 저장 토큰과 일치 여부 확인
+        // 2. Redis에 저장된 토큰과 일치 여부 검증
         Long userId = jwtUtil.getUserId(refreshToken);
         String redisKey = REFRESH_TOKEN_PREFIX + userId;
         String storedRefreshToken = redisTemplate.opsForValue().get(redisKey);
@@ -207,24 +196,22 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_MISMATCH);
         }
 
-        // 4. 사용자 존재 여부 확인
+        // 3. 사용자 존재 여부 확인
         User user = userService.findById(userId);
         if (user == null) {
             throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
 
-        // 5. 새로운 Access Token 및 Refresh Token 재발급
+        // 4. 새로운 Access Token 및 Refresh Token 발급
         String newAccessToken = jwtUtil.createAccessToken(
                 userId, user.getUsername(), user.getNickname(), user.getRole().name());
         String newRefreshToken = jwtUtil.createRefreshToken(userId);
         String newHashedRefreshToken = BCrypt.hashpw(newRefreshToken, BCrypt.gensalt());
 
-        // 6. Redis 새로운 Refresh Token 갱신
+        // 5. Redis 새로운 Refresh Token 갱신
         redisTemplate.opsForValue().set(redisKey, newHashedRefreshToken, jwtUtil.getRefreshExpMills(), TimeUnit.MILLISECONDS);
 
-        // 7. 쿠키에 두 토큰 설정
-        setTokenCookie(response, newAccessToken, ACCESS_TOKEN_COOKIE_NAME, jwtUtil.getAccessExpMills() / 1000);
-        setTokenCookie(response, newRefreshToken, REFRESH_TOKEN_COOKIE_NAME, jwtUtil.getRefreshExpMills() / 1000);
+        return new TokenPair(newAccessToken, newRefreshToken);
     }
 
     /**
@@ -268,59 +255,5 @@ public class AuthServiceImpl implements AuthService {
                         "</body></html>",
                 verificationCode
         );
-    }
-
-    /**
-     * HTTP 요청의 쿠키에서 Refresh Token 값을 추출한다.
-     *
-     * <p>처리 순서:</p>
-     * <ol>
-     *     <li>요청 객체에 쿠키가 있는지 확인</li>
-     *     <li>쿠키 목록에서 이름이 {@code REFRESH_TOKEN_COOKIE_NAME}과 일치하는 쿠키 검색</li>
-     *     <li>해당 쿠키의 값을 반환, 없으면 {@code null} 반환</li>
-     * </ol>
-     *
-     * @param request Refresh Token을 담고 있을 수 있는 HTTP 요청
-     * @return Refresh Token 문자열, 존재하지 않으면 {@code null}
-     */
-    private String extractRefreshToken(HttpServletRequest request) {
-        if (request.getCookies() == null) {
-            return null;
-        }
-
-        return Arrays.stream(request.getCookies())
-                .filter(cookie -> REFRESH_TOKEN_COOKIE_NAME.equals(cookie.getName()))
-                .map(Cookie::getValue)
-                .findFirst()
-                .orElse(null);
-    }
-
-    /**
-     * 주어진 토큰을 응답 쿠키로 설정한다.
-     *
-     * <p>설정 속성:</p>
-     * <ul>
-     *     <li>{@code HttpOnly}: true (JS 접근 불가, 보안 강화)</li>
-     *     <li>{@code Secure}: true (HTTPS 연결에서만 전송)</li>
-     *     <li>{@code SameSite}: Lax (기본 CSRF 방어)</li>
-     *     <li>{@code Path}: "/" (애플리케이션 전체 경로에서 사용 가능)</li>
-     *     <li>{@code Max-Age}: 토큰 만료 시간(초 단위)</li>
-     * </ul>
-     *
-     * @param response   쿠키를 추가할 HTTP 응답
-     * @param token      쿠키에 저장할 토큰 (Access 또는 Refresh Token)
-     * @param cookieName 쿠키 이름
-     * @param maxAge     쿠키 만료 시간 (초 단위)
-     */
-    private void setTokenCookie(HttpServletResponse response, String token, String cookieName, long maxAge) {
-        ResponseCookie cookie = ResponseCookie.from(cookieName, token)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Lax")
-                .path("/")
-                .maxAge(maxAge)
-                .build();
-
-        response.addHeader("Set-Cookie", cookie.toString());
     }
 }
