@@ -12,5 +12,5 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     @Modifying(clearAutomatically = true)
     @Query("update Project p set p.viewCount = p.viewCount + 1 where p.id = :projectId")
-    void increaseViewCount(@Param("projectId") Long projectId);
+    int increaseViewCount(@Param("projectId") Long projectId);
 }

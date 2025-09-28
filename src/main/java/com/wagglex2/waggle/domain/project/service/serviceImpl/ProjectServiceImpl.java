@@ -14,12 +14,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ProjectServiceImpl implements ProjectService {
     private final ProjectRepository projectRepository;
     private final UserService userService;
 
+    @Transactional
     @Override
     public void createProject(Long userId, ProjectCreationRequestDto requestDto) {
         requestDto.validate();
@@ -28,16 +29,16 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.save(newProject);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @Override
     public ProjectResponseDto getProject(Long projectId) {
-        ProjectResponseDto responseDto = projectRepository.findById(projectId)
-                .map(ProjectResponseDto::fromEntity)
-                .orElseThrow(() -> new BusinessException(ErrorCode.RECRUITMENT_NOT_FOUND));
+        int updated = projectRepository.increaseViewCount(projectId);
 
-        projectRepository.increaseViewCount(projectId);
-        responseDto.increaseViewCount();  // 조회 요청도 조회수에 포함
+        if (updated == 0) {
+            throw new BusinessException(ErrorCode.PROJECT_NOT_FOUND);
+        }
 
-        return responseDto;
+        return projectRepository.findById(projectId)
+                .map(ProjectResponseDto::fromEntity).get();
     }
 }

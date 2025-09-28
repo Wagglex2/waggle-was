@@ -28,9 +28,5 @@ public class BaseRecruitmentResponseDto {
     private final LocalDateTime createdAt;
 
     private final RecruitmentStatus status;
-    private int viewCount;
-
-    public void increaseViewCount() {
-        this.viewCount++;
-    }
+    private final int viewCount;
 }

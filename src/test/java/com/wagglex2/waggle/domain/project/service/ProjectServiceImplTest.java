@@ -39,6 +39,7 @@ class ProjectServiceImplTest {
         // given
         Project project = createProject();
         given(projectRepository.findById(1L)).willReturn(Optional.of(project));
+        given(projectRepository.increaseViewCount(1L)).willReturn(1);
 
         // when
         ProjectResponseDto actual = projectService.getProject(1L);
@@ -48,7 +49,6 @@ class ProjectServiceImplTest {
         assertThat(actual).usingRecursiveComparison()
                 .ignoringFields("viewCount")
                 .isEqualTo(expected);
-        assertThat(actual.getViewCount()).isEqualTo(1);
         verify(projectRepository, times(1)).findById(1L);
     }
 
