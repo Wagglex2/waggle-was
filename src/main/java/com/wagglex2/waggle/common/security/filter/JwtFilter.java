@@ -7,7 +7,6 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +34,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
 
-    private static final String ACCESS_TOKEN_COOKIE_NAME = "access_token";
     private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
 
     @Override
@@ -66,7 +64,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 return;
             }
 
-            // JWT Token 추출 (Authorization Header 또는 쿠키에서)
+            // JWT Token 추출 (Authorization Header)
             String accessToken = extractAccessToken(request);
 
             // 토큰이 없으면 그냥 통과 (보호된 API라면 EntryPoint가 알아서 401 처리)
@@ -118,34 +116,17 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Access Token 추출 (Authorization Header 또는 Cookie에서)
+     * Access Token 추출 (Authorization Header)
      */
     private String extractAccessToken(HttpServletRequest request) {
         // 1. Authorization Header에서 추출
         String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+
+        if (!StringUtils.hasText(bearerToken) || !bearerToken.startsWith("Bearer ")) {
+            return null;
         }
 
-        // 2. Cookie에서 추출
-        return extractTokenFromCookie(request, ACCESS_TOKEN_COOKIE_NAME);
-    }
-
-    /**
-     * 쿠키에서 토큰 추출
-     * @param cookieName ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME
-     */
-    private String extractTokenFromCookie(HttpServletRequest request, String cookieName) {
-        Cookie[] cookies = request.getCookies();
-
-        if (cookies != null) {
-            return Arrays.stream(cookies)
-                    .filter(cookie -> cookieName.equals(cookie.getName()))
-                    .findFirst()
-                    .map(Cookie::getValue)
-                    .orElse(null);
-        }
-        return null;
+        return bearerToken.substring(7);
     }
 
     /**

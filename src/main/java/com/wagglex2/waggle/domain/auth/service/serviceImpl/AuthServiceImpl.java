@@ -200,6 +200,11 @@ public class AuthServiceImpl implements AuthService {
         String storedRefreshToken = redisTemplate.opsForValue().get(redisKey);
 
         if (!StringUtils.hasText(storedRefreshToken) || !BCrypt.checkpw(refreshToken, storedRefreshToken)) {
+            log.warn("리프레시 토큰이 만료되었습니다: {}", userId);
+            throw new BusinessException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+        }
+
+        if (!BCrypt.checkpw(refreshToken, storedRefreshToken)) {
             log.warn("리프레시 토큰이 일치하지 않습니다: {}", userId);
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_MISMATCH);
         }

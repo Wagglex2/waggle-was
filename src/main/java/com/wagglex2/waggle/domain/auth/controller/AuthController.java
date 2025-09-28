@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
-    private static final String ACCESS_TOKEN_COOKIE_NAME = "access_token";
 
     private final AuthService authService;
     private final UserService userService;
@@ -106,8 +105,10 @@ public class AuthController {
         // 1. 토큰 재발급
         TokenPair tokens = authService.reissueTokens(refreshToken);
 
-        // 2. 쿠키 설정
-        addCookie(response, tokens.accessToken(), ACCESS_TOKEN_COOKIE_NAME, jwtUtil.getAccessExpMills() / 1000);
+        // 2. Access Token -> 헤더에 추가
+        response.setHeader("Authorization", "Bearer " + tokens.accessToken());
+
+        // 2. Refresh Token -> 쿠키 설정
         addCookie(response, tokens.refreshToken(), REFRESH_TOKEN_COOKIE_NAME, jwtUtil.getRefreshExpMills() / 1000);
 
         return ResponseEntity.status(HttpStatus.OK)
