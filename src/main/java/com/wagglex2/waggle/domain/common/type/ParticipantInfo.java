@@ -1,9 +1,10 @@
 package com.wagglex2.waggle.domain.common.type;
 
+import com.wagglex2.waggle.domain.common.dto.request.PositionInfoCreationRequestDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.validation.constraints.Min;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -19,17 +20,17 @@ import lombok.NoArgsConstructor;
  * {@link PositionType} 정보가 필요 없는 Assignment와 Study에서 사용된다.
  *
  * @see PositionParticipantInfo
+ * @see PositionInfoCreationRequestDto
  * @author 오재민
  */
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Embeddable
 public class ParticipantInfo {
-    @Min(value = 1, message = "모집 인원수는 1 이상이어야 합니다.")
     @Column(name = "max_participants", nullable = false)
     private int maxParticipants;
 
-    @Min(value = 0, message = "현재 인원수는 0 이상이어야 합니다.")
     @Column(name = "curr_participants", nullable = false)
     private int currParticipants = 0;
 
