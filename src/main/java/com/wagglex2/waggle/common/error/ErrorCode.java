@@ -19,6 +19,7 @@ public enum ErrorCode {
     DUPLICATED_EMAIL(HttpStatus.CONFLICT, "DUPLICATED_EMAIL", "이미 가입된 이메일입니다."),
     DUPLICATED_NICKNAME(HttpStatus.CONFLICT, "DUPLICATED_NICKNAME", "이미 존재하는 닉네임입니다."),
     INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "INVALID_DATE_RANGE", "유효하지 않은 날짜 범위입니다."),
+    MAX_PARTICIPANTS_EXCEEDED(HttpStatus.BAD_REQUEST, "MAX_PARTICIPANTS_EXCEEDED", "참가 인원이 최대 모집 인원을 초과했습니다."),
 
     // 401
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "인증이 필요합니다."),

@@ -4,7 +4,8 @@ import com.wagglex2.waggle.common.error.ErrorCode;
 import com.wagglex2.waggle.common.exception.BusinessException;
 import com.wagglex2.waggle.domain.common.dto.request.BaseRecruitmentRequestDto;
 import com.wagglex2.waggle.domain.common.dto.request.GradeRequestDto;
-import com.wagglex2.waggle.domain.common.type.Period;
+import com.wagglex2.waggle.domain.common.dto.request.PeriodRequestDto;
+import com.wagglex2.waggle.domain.common.dto.request.PositionInfoCreationRequestDto;
 import com.wagglex2.waggle.domain.common.type.PositionParticipantInfo;
 import com.wagglex2.waggle.domain.common.type.Skill;
 import com.wagglex2.waggle.domain.project.entity.Project;
@@ -30,7 +31,7 @@ public class ProjectCreationRequestDto extends BaseRecruitmentRequestDto {
 
     @NotEmpty(message = "포지션 정보가 누락되었습니다.")
     @Valid
-    private final Set<PositionParticipantInfo> positions;
+    private final Set<PositionInfoCreationRequestDto> positions;
 
     @NotEmpty(message = "기술 스택이 누락되었습니다.")
     private final Set<Skill> skills;
@@ -41,13 +42,13 @@ public class ProjectCreationRequestDto extends BaseRecruitmentRequestDto {
     private final Set<GradeRequestDto> grades;
 
     @Valid
-    private final Period period;
+    private final PeriodRequestDto period;
 
     public ProjectCreationRequestDto(
             String title, String content, LocalDateTime deadline,
             ProjectPurpose purpose, MeetingType meetingType,
-            Set<PositionParticipantInfo> positions,
-            Set<Skill> skills, Set<GradeRequestDto> grades, Period period
+            Set<PositionInfoCreationRequestDto> positions,
+            Set<Skill> skills, Set<GradeRequestDto> grades, PeriodRequestDto period
     ) {
         super(title, content, deadline);
         this.purpose = purpose;
@@ -63,6 +64,10 @@ public class ProjectCreationRequestDto extends BaseRecruitmentRequestDto {
                 .map(GradeRequestDto::grade)
                 .collect(Collectors.toSet());
 
+        Set<PositionParticipantInfo> positions = dto.getPositions().stream()
+                .map(PositionInfoCreationRequestDto::toPositionParticipantInfo)
+                .collect(Collectors.toSet());
+
         return Project.builder()
                 .user(user)
                 .title(dto.getTitle())
@@ -70,10 +75,10 @@ public class ProjectCreationRequestDto extends BaseRecruitmentRequestDto {
                 .deadline(dto.getDeadline())
                 .purpose(dto.getPurpose())
                 .meetingType(dto.getMeetingType())
-                .positions(dto.getPositions())
+                .positions(positions)
                 .skills(dto.getSkills())
                 .grades(grades)
-                .period(dto.getPeriod())
+                .period(PeriodRequestDto.toPeriod(dto.getPeriod()))
                 .build();
     }
 

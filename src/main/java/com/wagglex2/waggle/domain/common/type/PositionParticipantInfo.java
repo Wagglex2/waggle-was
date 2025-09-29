@@ -1,9 +1,8 @@
 package com.wagglex2.waggle.domain.common.type;
 
+import com.wagglex2.waggle.domain.common.dto.request.PositionInfoCreationRequestDto;
 import com.wagglex2.waggle.domain.project.entity.Project;
 import jakarta.persistence.*;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 /**
@@ -18,6 +17,8 @@ import lombok.*;
  * {@link PositionType} 정보가 필요한 {@link Project}에서 사용된다.
  *
  * @see ParticipantInfo
+ * @see PositionInfoCreationRequestDto
+ * @see Project
  * @author 오재민
  */
 @AllArgsConstructor
@@ -25,12 +26,10 @@ import lombok.*;
 @Getter
 @Embeddable
 public class PositionParticipantInfo {
-    @NotNull(message = "포지션이 누락되었습니다.")
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private final PositionType position;
 
-    @Valid
     @Embedded
     private ParticipantInfo participantInfo;
 }
