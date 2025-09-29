@@ -13,7 +13,7 @@ public record PositionInfoCreationRequestDto(
         @Min(value = 1, message = "모집 인원수는 1 이상이어야 합니다.")
         int maxParticipants
 ) {
-    public static PositionParticipantInfo toPositionParticipantInfo(PositionInfoCreationRequestDto dto) {
+    public static PositionParticipantInfo to(PositionInfoCreationRequestDto dto) {
         return new PositionParticipantInfo(
                 dto.position(),
                 new ParticipantInfo(dto.maxParticipants())

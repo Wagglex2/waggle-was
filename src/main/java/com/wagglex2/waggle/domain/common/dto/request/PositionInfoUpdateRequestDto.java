@@ -1,6 +1,5 @@
 package com.wagglex2.waggle.domain.common.dto.request;
 
-import com.wagglex2.waggle.domain.common.type.ParticipantInfo;
 import com.wagglex2.waggle.domain.common.type.PositionParticipantInfo;
 import com.wagglex2.waggle.domain.common.type.PositionType;
 import jakarta.validation.Valid;
@@ -14,13 +13,10 @@ public record PositionInfoUpdateRequestDto(
         @Valid
         ParticipantInfoUpdateRequestDto participantInfo
 ) {
-    public static PositionParticipantInfo toPositionParticipantInfo(PositionInfoUpdateRequestDto dto) {
+    public static PositionParticipantInfo to(PositionInfoUpdateRequestDto dto) {
         return new PositionParticipantInfo(
                 dto.position(),
-                new ParticipantInfo(
-                        dto.participantInfo().maxParticipants(),
-                        dto.participantInfo().currParticipants()
-                )
+                ParticipantInfoUpdateRequestDto.to(dto.participantInfo())
         );
     }
 }

@@ -6,7 +6,7 @@ public record ParticipantInfoResponseDto(
         int maxParticipants,
         int currParticipants
 ) {
-    public static ParticipantInfoResponseDto fromParticipantInfo(ParticipantInfo info) {
+    public static ParticipantInfoResponseDto from(ParticipantInfo info) {
         return new ParticipantInfoResponseDto(info.getMaxParticipants(), info.getCurrParticipants());
     }
 }

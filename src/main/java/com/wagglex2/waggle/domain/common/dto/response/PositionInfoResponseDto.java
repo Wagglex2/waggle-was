@@ -7,10 +7,10 @@ public record PositionInfoResponseDto(
         PositionType position,
         ParticipantInfoResponseDto participantInfo
 ) {
-    public static PositionInfoResponseDto fromPositionInfo(PositionParticipantInfo info) {
+    public static PositionInfoResponseDto from(PositionParticipantInfo info) {
         return new PositionInfoResponseDto(
                 info.getPosition(),
-                ParticipantInfoResponseDto.fromParticipantInfo(info.getParticipantInfo())
+                ParticipantInfoResponseDto.from(info.getParticipantInfo())
         );
     }
 }

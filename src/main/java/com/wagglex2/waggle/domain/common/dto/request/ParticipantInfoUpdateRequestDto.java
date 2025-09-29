@@ -18,7 +18,7 @@ public record ParticipantInfoUpdateRequestDto(
         }
     }
 
-    public static ParticipantInfo toParticipantInfo(ParticipantInfoUpdateRequestDto dto) {
+    public static ParticipantInfo to(ParticipantInfoUpdateRequestDto dto) {
         return new ParticipantInfo(dto.maxParticipants(), dto.currParticipants());
     }
 }

@@ -25,7 +25,7 @@ public record PeriodRequestDto(
         }
     }
 
-    public static Period toPeriod(PeriodRequestDto dto) {
+    public static Period to(PeriodRequestDto dto) {
         return new Period(dto.startDate, dto.endDate);
     }
 }

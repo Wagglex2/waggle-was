@@ -12,7 +12,7 @@ public record PeriodResponseDto(
         @JsonFormat(pattern = "yyyy-MM-dd")
         LocalDate endDate
 ) {
-    public static PeriodResponseDto fromPeriod(Period period) {
+    public static PeriodResponseDto from(Period period) {
         return new PeriodResponseDto(period.startDate(), period.endDate());
     }
 }

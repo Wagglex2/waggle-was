@@ -65,7 +65,7 @@ public class ProjectCreationRequestDto extends BaseRecruitmentRequestDto {
                 .collect(Collectors.toSet());
 
         Set<PositionParticipantInfo> positions = dto.getPositions().stream()
-                .map(PositionInfoCreationRequestDto::toPositionParticipantInfo)
+                .map(PositionInfoCreationRequestDto::to)
                 .collect(Collectors.toSet());
 
         return Project.builder()
@@ -78,7 +78,7 @@ public class ProjectCreationRequestDto extends BaseRecruitmentRequestDto {
                 .positions(positions)
                 .skills(dto.getSkills())
                 .grades(grades)
-                .period(PeriodRequestDto.toPeriod(dto.getPeriod()))
+                .period(PeriodRequestDto.to(dto.getPeriod()))
                 .build();
     }
 
