@@ -1,6 +1,7 @@
 package com.wagglex2.waggle.domain.user.entity.type;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.wagglex2.waggle.common.error.ErrorCode;
 import com.wagglex2.waggle.common.exception.BusinessException;
 import lombok.Getter;
@@ -19,6 +20,8 @@ public enum University {
     KEIMYUNG_UNIV("계명대", "stu.kmu.ac.kr");
 
     private final String desc;
+
+    @JsonIgnore
     private final String domain;
 
     public  String getName() {

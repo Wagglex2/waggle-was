@@ -7,6 +7,7 @@ import com.wagglex2.waggle.domain.project.entity.Project;
 import com.wagglex2.waggle.domain.project.type.MeetingType;
 import com.wagglex2.waggle.domain.project.type.ProjectPurpose;
 import com.wagglex2.waggle.domain.user.entity.User;
+import com.wagglex2.waggle.domain.user.entity.type.University;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -23,12 +24,12 @@ public class ProjectResponseDto extends BaseRecruitmentResponseDto {
     private final Period period;
 
     private ProjectResponseDto(
-            Long id, Long authorId, String authorNickname, RecruitmentCategory category,
+            Long id, Long authorId, String authorNickname, RecruitmentCategory category, University university,
             String title, String content, LocalDateTime deadline, LocalDateTime createdAt,
             RecruitmentStatus status, int viewCount, ProjectPurpose purpose, MeetingType meetingType,
             Set<PositionParticipantInfo> positions, Set<Skill> skills, Set<Integer> grades, Period period
     ) {
-        super(id, authorId, authorNickname, category, title, content, deadline, createdAt, status, viewCount);
+        super(id, authorId, authorNickname, category, university, title, content, deadline, createdAt, status, viewCount);
         this.purpose = purpose;
         this.meetingType = meetingType;
         this.positions = positions;
@@ -41,7 +42,7 @@ public class ProjectResponseDto extends BaseRecruitmentResponseDto {
         User author = project.getUser();
 
         return new ProjectResponseDto(
-                project.getId(), author.getId(), author.getNickname(), project.getCategory(),
+                project.getId(), author.getId(), author.getNickname(), project.getCategory(), author.getUniversity(),
                 project.getTitle(), project.getContent(), project.getDeadline(), project.getCreatedAt(),
                 project.getStatus(), project.getViewCount(), project.getPurpose(), project.getMeetingType(),
                 project.getPositions(), project.getSkills(), project.getGrades(), project.getPeriod()

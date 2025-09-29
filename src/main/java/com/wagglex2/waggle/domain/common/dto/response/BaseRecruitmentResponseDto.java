@@ -3,6 +3,7 @@ package com.wagglex2.waggle.domain.common.dto.response;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.wagglex2.waggle.domain.common.type.RecruitmentCategory;
 import com.wagglex2.waggle.domain.common.type.RecruitmentStatus;
+import com.wagglex2.waggle.domain.user.entity.type.University;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,7 +18,7 @@ public class BaseRecruitmentResponseDto {
     private final String authorNickname;
     private final RecruitmentCategory category;
     // TODO profileImg
-    // TODO university - merge 후 University enum 반영
+    private final University university;
     private final String title;
     private final String content;
 
