@@ -4,6 +4,7 @@ import com.wagglex2.waggle.domain.common.dto.request.PositionInfoCreationRequest
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -22,6 +23,7 @@ import lombok.NoArgsConstructor;
  * @see PositionInfoCreationRequestDto
  * @author 오재민
  */
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Embeddable
