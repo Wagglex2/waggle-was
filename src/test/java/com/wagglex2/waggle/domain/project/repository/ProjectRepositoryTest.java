@@ -6,6 +6,7 @@ import com.wagglex2.waggle.domain.project.entity.Project;
 import com.wagglex2.waggle.domain.project.type.MeetingType;
 import com.wagglex2.waggle.domain.project.type.ProjectPurpose;
 import com.wagglex2.waggle.domain.user.entity.User;
+import com.wagglex2.waggle.domain.user.entity.type.University;
 import com.wagglex2.waggle.domain.user.entity.type.UserRoleType;
 import com.wagglex2.waggle.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -143,8 +144,12 @@ class ProjectRepositoryTest {
                 .password("password")
                 .nickname("nickname")
                 .email("email@email.com")
+                .university(University.YOUNGNAM_UNIV)
+                .grade(3)
                 .role(UserRoleType.ROLE_USER)
                 .shortIntro("short intro")
+                .position(PositionType.FRONT_END)
+                .skills(Set.of(Skill.REACT, Skill.SPRING_BOOT))
                 .build();
 
     }
