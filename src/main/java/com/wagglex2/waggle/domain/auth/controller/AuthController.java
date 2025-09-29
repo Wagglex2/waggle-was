@@ -1,115 +1,146 @@
 package com.wagglex2.waggle.domain.auth.controller;
 
-import com.wagglex2.waggle.common.error.ErrorCode;
 import com.wagglex2.waggle.common.response.ApiResponse;
 import com.wagglex2.waggle.common.security.jwt.JwtUtil;
-import com.wagglex2.waggle.domain.user.entity.User;
+import com.wagglex2.waggle.domain.auth.dto.request.EmailVerificationRequestDto;
+import com.wagglex2.waggle.domain.auth.dto.request.SignUpRequestDto;
+import com.wagglex2.waggle.domain.auth.dto.response.TokenPair;
+import com.wagglex2.waggle.domain.auth.service.AuthService;
 import com.wagglex2.waggle.domain.user.service.UserService;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@Validated
 @Slf4j
 public class AuthController {
 
-    private final JwtUtil jwtUtil;
+    private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
+
+    private final AuthService authService;
     private final UserService userService;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final JwtUtil jwtUtil;
 
-    private final static String REFRESH_TOKEN_PREFIX = "RT:";
-    private final static String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
-    private final static String ACCESS_TOKEN_COOKIE_NAME = "access_token";
+    /**
+     * 회원가입 이메일 인증을 위한 인증번호를 발송한다.
+     *
+     * @param email 인증번호를 받을 사용자 이메일
+     * @return ApiResponse(Void) — 성공 시 "이메일 전송에 성공했습니다."
+     */
+    @PostMapping("/email/code")
+    public ResponseEntity<ApiResponse<Void>> sendEmailAuthCode(@RequestParam
+                                                               @Email(message = "올바른 이메일 형식이 아닙니다.")
+                                                               String email) {
+        authService.sendAuthCode(email);
 
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.ok("이메일 전송에 성공했습니다."));
+    }
+
+    /**
+     * 사용자가 입력한 인증번호를 검증한다.
+     *
+     * @param dto 이메일과 인증번호를 담은 DTO
+     * @return ApiResponse(Void) — 성공 시 "이메일 인증이 완료되었습니다."
+     */
+    @PostMapping("/email/verify")
+    public ResponseEntity<ApiResponse<Void>> verifyAuthCode(@Valid @RequestBody EmailVerificationRequestDto dto) {
+        authService.verifyCode(dto.email(), dto.inputCode());
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.ok("이메일 인증이 완료되었습니다."));
+    }
+
+    /**
+     * 회원가입 요청을 처리한다.
+     *
+     * <p>처리 순서:</p>
+     * <ol>
+     *     <li>요청 DTO를 {@code @Valid}로 검증</li>
+     *     <li>검증 성공 시 {@link UserService#signUp(SignUpRequestDto)} 호출</li>
+     *     <li>생성된 사용자 ID 반환</li>
+     *     <li>HTTP 상태코드 {@code 201 Created}와 함께 ApiResponse로 응답</li>
+     * </ol>
+     *
+     * @param dto 회원가입 요청 DTO
+     * @return 회원가입 성공 메시지와 생성된 사용자 ID를 포함한 응답
+     * @see UserService#signUp(SignUpRequestDto)
+     */
+    @PostMapping("/sign-up")
+    public ResponseEntity<ApiResponse<Long>> signUp(@Valid @RequestBody SignUpRequestDto dto) {
+        Long userId = userService.signUp(dto);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.ok("회원가입에 성공했습니다.", userId));
+    }
+
+    /**
+     * Refresh Token을 사용해 새로운 Access/Refresh Token을 재발급한다.
+     *
+     * <p>처리 순서:</p>
+     * <ol>
+     *   <li>쿠키에서 Refresh Token 추출</li>
+     *   <li>AuthService를 통해 토큰 재발급</li>
+     *   <li>새로운 토큰을 쿠키로 설정</li>
+     *   <li>성공 응답 반환</li>
+     * </ol>
+     *
+     * @param refreshToken 쿠키에 담긴 Refresh Token
+     * @param response     새로운 토큰을 담아 보낼 HTTP 응답
+     * @return ApiResponse(Void) — 성공 시 "토큰 재발급에 성공했습니다."
+     */
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<Void>> refreshToken(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<Void>> refreshToken(@CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshToken,
+                                                          HttpServletResponse response) {
+        // 1. 토큰 재발급
+        TokenPair tokens = authService.reissueTokens(refreshToken);
 
-        // Cookie로부터 Refresh Token 추출
-        String refreshToken = extractRefreshToken(request);
+        // 2. Access Token -> 헤더에 추가
+        response.setHeader("Authorization", "Bearer " + tokens.accessToken());
 
-        if (!StringUtils.hasText(refreshToken) || !jwtUtil.validateToken(refreshToken) || !jwtUtil.isRefreshToken(refreshToken)) {
-            log.warn("Refresh Token이 유효하지 않습니다.");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.error(ErrorCode.REFRESH_TOKEN_INVALID));
-        }
-
-        Long userId = jwtUtil.getUserId(refreshToken);
-        String redisKey = REFRESH_TOKEN_PREFIX + userId;
-        String storedRefreshToken = redisTemplate.opsForValue().get(redisKey);
-
-        if (!StringUtils.hasText(storedRefreshToken) || !BCrypt.checkpw(refreshToken, storedRefreshToken)) {
-            log.warn("Refresh Token이 일치하지 않습니다: {}", userId);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.error(ErrorCode.REFRESH_TOKEN_MISMATCH));
-        }
-
-        User user = userService.findById(userId);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponse.error(ErrorCode.USER_NOT_FOUND));
-        }
-
-        // 새 Token 발급
-        String newAccessToken = jwtUtil.createAccessToken(
-                userId, user.getUsername(), user.getNickname(), user.getRole().name());
-        String newRefreshToken = jwtUtil.createRefreshToken(userId);
-        String newHashedRefreshToken = BCrypt.hashpw(newRefreshToken, BCrypt.gensalt());
-
-        // Redis에 새로운 Refresh Token 갱신
-        redisTemplate.opsForValue().set(redisKey, newHashedRefreshToken, jwtUtil.getRefreshExpMills(), TimeUnit.MILLISECONDS);
-
-        // Cookie 설정
-        setTokenCookie(response, newAccessToken, ACCESS_TOKEN_COOKIE_NAME, jwtUtil.getAccessExpMills() / 1000);
-        setTokenCookie(response, newRefreshToken, REFRESH_TOKEN_COOKIE_NAME, jwtUtil.getRefreshExpMills() / 1000);
+        // 2. Refresh Token -> 쿠키 설정
+        addCookie(response, tokens.refreshToken(), REFRESH_TOKEN_COOKIE_NAME, jwtUtil.getRefreshExpMills() / 1000);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.ok("토큰 재발급에 성공했습니다."));
     }
 
     /**
-     * Cookie로부터 Refresh Token 추출하기
-     */
-    private String extractRefreshToken(HttpServletRequest request) {
-        if (request.getCookies() == null) {
-            return null;
-        }
-
-        return Arrays.stream(request.getCookies())
-                .filter(cookie -> REFRESH_TOKEN_COOKIE_NAME.equals(cookie.getName()))
-                .map(Cookie::getValue)
-                .findFirst()
-                .orElse(null);
-    }
-
-    /**
-     * 해당 Token에 맞게 쿠키 설정
-     * @param token Refresh / Access Token
+     * 주어진 토큰을 응답 쿠키에 설정한다.
+     *
+     * <p>설정 옵션:</p>
+     * <ul>
+     *   <li><b>HttpOnly</b>: true (JS에서 접근 불가, XSS 방어)</li>
+     *   <li><b>Secure</b>: true (HTTPS에서만 전송)</li>
+     *   <li><b>SameSite</b>: Lax (기본 CSRF 방어)</li>
+     *   <li><b>Path</b>: "/" (애플리케이션 전역에서 사용 가능)</li>
+     *   <li><b>Max-Age</b>: 토큰 만료 시간(초)</li>
+     * </ul>
+     *
+     * @param response   HTTP 응답
+     * @param token      저장할 토큰 값
      * @param cookieName 쿠키 이름
-     * @param maxAge 쿠키 만료 시간
+     * @param maxAge     만료 시간(초)
      */
-    private void setTokenCookie(HttpServletResponse response, String token, String cookieName, long maxAge) {
-        String cookieValue = String.format(
-                "%s=%s; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=%d",
-                cookieName,
-                token,
-                maxAge
-        );
+    private void addCookie(HttpServletResponse response, String token, String cookieName, long maxAge) {
+        ResponseCookie cookie = ResponseCookie.from(cookieName, token)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(maxAge)
+                .build();
 
-        response.addHeader("Set-Cookie", cookieValue);
+        response.addHeader("Set-Cookie", cookie.toString());
     }
 }

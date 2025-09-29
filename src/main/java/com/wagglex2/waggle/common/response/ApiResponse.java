@@ -38,6 +38,7 @@ public class ApiResponse<T> {
         return of(code, message, null);
     }
 
-
-
+    public static <T> ApiResponse<T> error(ErrorCode errorCode, T data) {
+        return of(errorCode.getCode(), errorCode.getMessage(), data);
+    }
 }

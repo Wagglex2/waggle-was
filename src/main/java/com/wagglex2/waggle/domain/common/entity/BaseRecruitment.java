@@ -3,7 +3,6 @@ package com.wagglex2.waggle.domain.common.entity;
 import com.wagglex2.waggle.domain.common.type.RecruitmentCategory;
 import com.wagglex2.waggle.domain.common.type.RecruitmentStatus;
 import com.wagglex2.waggle.domain.project.entity.Project;
-import com.wagglex2.waggle.domain.assignment.entity.Assignment;
 import com.wagglex2.waggle.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,10 +31,10 @@ import java.time.LocalDateTime;
  * </ul>
  *
  * @see Project
- * @see Assignment
  * @author 오재민
  */
-@Entity(name = "base_recruitments")
+@Table(name = "base_recruitments")
+@Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
