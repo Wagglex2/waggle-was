@@ -19,6 +19,7 @@ public enum University {
     KEIMYUNG_UNIV("계명대", "stu.kmu.ac.kr");
 
     private final String desc;
+
     private final String domain;
 
     public  String getName() {
