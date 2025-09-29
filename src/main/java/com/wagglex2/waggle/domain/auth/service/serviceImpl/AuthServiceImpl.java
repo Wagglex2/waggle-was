@@ -104,7 +104,7 @@ public class AuthServiceImpl implements AuthService {
      *     <li>본문: 인증번호 포함 HTML 템플릿</li>
      * </ul>
      *
-     * @param toEmail          인증번호를 받을 이메일
+     * @param toEmail 인증번호를 받을 이메일
      * @param verificationCode 랜덤으로 생성된 6자리 인증번호
      * @throws BusinessException 이메일 발송 실패 시 {@link ErrorCode#EMAIL_SEND_FAILED}
      */
@@ -149,14 +149,14 @@ public class AuthServiceImpl implements AuthService {
      *     <li>검증 성공 시 Redis에서 해당 키 삭제 (재사용 방지)</li>
      * </ol>
      *
-     * @param toEmail   인증번호를 받은 이메일
+     * @param toEmail 인증번호를 받은 이메일
      * @param inputCode 사용자가 입력한 인증번호
      * @throws BusinessException
-     * <ul>
-     *  <li>{@link ErrorCode#INVALID_REQUEST} : 이메일 또는 인증번호가 누락됨</li>
-     *  <li>{@link ErrorCode#VERIFICATION_CODE_EXPIRED} : 인증번호가 존재하지 않거나 만료됨</li>
-     *  <li>{@link ErrorCode#INVALID_VERIFICATION_CODE} : 입력된 인증번호 불일치</li>
-     *</ul>
+     *         <ul>
+     *             <li>{@link ErrorCode#INVALID_REQUEST} : 이메일 또는 인증번호가 누락됨</li>
+     *             <li>{@link ErrorCode#VERIFICATION_CODE_EXPIRED} : 인증번호가 존재하지 않거나 만료됨</li>
+     *             <li>{@link ErrorCode#INVALID_VERIFICATION_CODE} : 입력된 인증번호 불일치</li>
+     *         </ul>
      */
     @Override
     public void verifyCode(String toEmail, String inputCode) {
@@ -166,9 +166,9 @@ public class AuthServiceImpl implements AuthService {
                 throw new BusinessException(ErrorCode.INVALID_REQUEST, "이메일 또는 인증번호가 누락되었습니다.");
             }
 
-            // 2. Redis에서 키로 저장된 인증번호 조회
-            String key = EMAIL_VERIFICATION_PREFIX + toEmail;
-            String storedCode = redisTemplate.opsForValue().get(key);
+        // 2. Redis에서 키로 저장된 인증번호 조회
+        String key = EMAIL_VERIFICATION_PREFIX + toEmail;
+        String storedCode = redisTemplate.opsForValue().get(key);
 
             // 3. 저장된 인증번호가 없으면 만료된 것으로 간주
             if (storedCode == null) {
