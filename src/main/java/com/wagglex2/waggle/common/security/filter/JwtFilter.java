@@ -2,20 +2,22 @@ package com.wagglex2.waggle.common.security.filter;
 
 import com.wagglex2.waggle.common.security.jwt.JwtUtil;
 import com.wagglex2.waggle.common.security.CustomUserDetails;
-import com.wagglex2.waggle.domain.user.entity.User;
-import com.wagglex2.waggle.domain.user.service.UserService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -27,10 +29,12 @@ import java.util.Arrays;
 @Slf4j
 public class JwtFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
-    private final UserService userService;
+    @Value("${security.whitelist}")
+    private String[] whiteList;
 
-    private static final String ACCESS_TOKEN_COOKIE_NAME = "access_token";
+    private final JwtUtil jwtUtil;
+
+    private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -39,89 +43,106 @@ public class JwtFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         try {
-            // 이미 인증된 경우 Skip
-            if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            String uri = request.getRequestURI();
+
+            // 프론트가 브라우저면 preflight 요청은 바로 통과
+            if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            // JWT Token 추출 (Authorization Header 또는 쿠키에서)
+            // 1. 화이트리스트는 그냥 통과
+            if (isWhiteListed(uri)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            // 이미 인증된 경우 Skip
+            Authentication existing =  SecurityContextHolder.getContext().getAuthentication();
+            if (existing != null && !(existing instanceof AnonymousAuthenticationToken)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            // JWT Token 추출 (Authorization Header)
             String accessToken = extractAccessToken(request);
 
+            // 토큰이 없으면 그냥 통과 (보호된 API라면 EntryPoint가 알아서 401 처리)
             if (!StringUtils.hasText(accessToken)) {
-                log.debug("요청에서 Access Token을 찾을 수 없습니다: {}", request.getRequestURL());
-                SecurityContextHolder.clearContext();
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                filterChain.doFilter(request, response);
                 return;
             }
 
-            if (!jwtUtil.validateToken(accessToken) || !jwtUtil.isAccessToken(accessToken)) {
-                log.debug("Access Token이 만료되거나 유효하지 않습니다.");
+            // 한 번만 파싱해서 검증 / Claims 확보
+            Claims claims;
+            try {
+                claims = jwtUtil.parseToken(accessToken);
+            } catch (ExpiredJwtException ex) {
+                log.debug("Access Token 만료 : {}", uri);
+                request.setAttribute("token.error", "expired");
                 SecurityContextHolder.clearContext();
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                filterChain.doFilter(request, response);
+                return;
+            } catch (JwtException ex) {
+                log.debug("Access Token 위조/파싱 실패 : uri={}, message={}", uri, ex.getMessage());
+                request.setAttribute("token.error", "invalid");
+                SecurityContextHolder.clearContext();
+                filterChain.doFilter(request, response);
                 return;
             }
 
-            setAuthentication(accessToken);
-            log.debug("유효한 Access Token입니다. 요청한 URL : {}", request.getRequestURL());
+            if (!jwtUtil.isAccessToken(accessToken)) {
+                log.debug("Access Token이 아닙니다: {}", uri);
+                SecurityContextHolder.clearContext();
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            setAuthenticationFromClaims(claims);
+            log.debug("유효한 Access Token입니다. 요청한 URL : {}", uri);
+
+            filterChain.doFilter(request, response);
 
         } catch (Exception e) {
-            log.error("JWT 인증 중 오류가 발생했습니다.: {}", e.getMessage(), e);
-
-            // 인증 오류 시 SecurityContext Clear
+            log.warn("JWT 필터 처리 중 예외: {}", e.getMessage());
             SecurityContextHolder.clearContext();
+            filterChain.doFilter(request, response);
         }
     }
 
+    private boolean isWhiteListed(String uri) {
+        return Arrays.stream(whiteList)
+                .anyMatch(pattern -> PATH_MATCHER.match(pattern, uri));
+    }
+
     /**
-     * Access Token 추출 (Authorization Header 또는 Cookie에서)
+     * Access Token 추출 (Authorization Header)
      */
     private String extractAccessToken(HttpServletRequest request) {
         // 1. Authorization Header에서 추출
         String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+
+        if (!StringUtils.hasText(bearerToken) || !bearerToken.startsWith("Bearer ")) {
+            return null;
         }
 
-        // 2. Cookie에서 추출
-        return extractTokenFromCookie(request, ACCESS_TOKEN_COOKIE_NAME);
-    }
-
-    /**
-     * 쿠키에서 토큰 추출
-     * @param cookieName ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME
-     */
-    private String extractTokenFromCookie(HttpServletRequest request, String cookieName) {
-        Cookie[] cookies = request.getCookies();
-
-        if (cookies != null) {
-            return Arrays.stream(cookies)
-                    .filter(cookie -> cookieName.equals(cookie.getName()))
-                    .findFirst()
-                    .map(Cookie::getValue)
-                    .orElse(null);
-        }
-        return null;
+        return bearerToken.substring(7);
     }
 
     /**
      * JWT Token으로 인증 객체 생성 및 SecurityContext에 저장
      */
-    private void setAuthentication(String accessToken) {
+    private void setAuthenticationFromClaims(Claims claims) {
         try {
-            Claims claims = jwtUtil.parseToken(accessToken);
-            Long userId = claims.get("uid", Long.class);
+            // JJWT는 정수형을 Integer로 줄 때가 있음 -> ClassCastException 가능성
+            Number uidNum = claims.get("uid", Number.class);
+            Long userId = uidNum != null ? uidNum.longValue() : null;
             String username = claims.get("username", String.class);
-
-            User user = userService.findById(userId);
-
-            if (user == null) {
-                log.warn("User를 찾을 수 없습니다: {}", userId);
-                return;
-            }
+            String nickname = claims.get("nickname", String.class);
+            String role = claims.get("role", String.class);
 
             // CustomUserDetails 생성
-            CustomUserDetails userDetails = new CustomUserDetails(user);
+            CustomUserDetails userDetails = new CustomUserDetails(userId, username, nickname, role);
 
             // Authentication 객체 생성
             Authentication authentication = new UsernamePasswordAuthenticationToken(

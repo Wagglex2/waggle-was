@@ -24,7 +24,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
-    private final LoginSuccessHandler loginSuccessHandler;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
@@ -38,14 +37,13 @@ public class SecurityConfig {
         return http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/v1/login",
-                                "/api/v1/signup"
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/sign-up",
+                                "/api/v1/users/email/**",
+                                "/api/v1/users/nickname/**",
+                                "/api/v1/users/username/**"
                         ).permitAll()
                         .anyRequest().authenticated()
-                )
-                .formLogin(form -> form
-                        .loginProcessingUrl("/api/v1/login")
-                        .successHandler(loginSuccessHandler)
                 )
                 // JWT Filter를 UsernamePasswordAuthenticationFilter 앞에 등록
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
