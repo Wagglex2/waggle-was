@@ -31,8 +31,8 @@ import java.util.Set;
  * @author 박대형
  * @see BaseRecruitment
  */
+@Table(name = "assignments")
 @Entity
-@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Assignment extends BaseRecruitment {
     @Column(nullable = false)

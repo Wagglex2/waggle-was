@@ -14,6 +14,7 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 public class AssignmentCreationRequestDto extends BaseRecruitmentRequestDto {
@@ -48,11 +49,9 @@ public class AssignmentCreationRequestDto extends BaseRecruitmentRequestDto {
     }
 
     public static Assignment toEntity(User user, AssignmentCreationRequestDto dto) {
-        Set<Integer> grades = new HashSet<>();
-
-        for (GradeRequestDto g : dto.getGrades()) {
-            grades.add(g.grade());
-        }
+        Set<Integer> grades = dto.getGrades().stream()
+                .map(GradeRequestDto::grade)
+                .collect(Collectors.toSet());
 
         return Assignment.builder()
                 .user(user)
