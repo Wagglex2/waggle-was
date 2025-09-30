@@ -1,10 +1,14 @@
 package com.wagglex2.waggle.domain.project.entity;
 
+import com.wagglex2.waggle.domain.common.dto.request.GradeRequestDto;
+import com.wagglex2.waggle.domain.common.dto.request.PeriodRequestDto;
+import com.wagglex2.waggle.domain.common.dto.request.PositionInfoUpdateRequestDto;
 import com.wagglex2.waggle.domain.common.entity.BaseRecruitment;
 import com.wagglex2.waggle.domain.common.type.Period;
 import com.wagglex2.waggle.domain.common.type.PositionParticipantInfo;
 import com.wagglex2.waggle.domain.common.type.RecruitmentCategory;
 import com.wagglex2.waggle.domain.common.type.Skill;
+import com.wagglex2.waggle.domain.project.dto.request.ProjectUpdateRequestDto;
 import com.wagglex2.waggle.domain.project.type.MeetingType;
 import com.wagglex2.waggle.domain.project.type.ProjectPurpose;
 import com.wagglex2.waggle.domain.user.entity.User;
@@ -14,6 +18,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 프로젝트 모집 공고 엔티티.
@@ -86,5 +91,28 @@ public class Project extends BaseRecruitment {
         this.skills = skills;
         this.grades = grades;
         this.period = period;
+    }
+
+    public void update(ProjectUpdateRequestDto dto) {
+        update(dto.getTitle(), dto.getContent(), dto.getDeadline());
+
+        Set<PositionParticipantInfo> positions = dto.getPositions().stream()
+                .map(PositionInfoUpdateRequestDto::to)
+                .collect(Collectors.toSet());
+
+        Set<Integer> grades = dto.getGrades().stream()
+                .map(GradeRequestDto::grade)
+                .collect(Collectors.toSet());
+
+        this.purpose = dto.getPurpose();
+        this.meetingType = dto.getMeetingType();
+        this.skills.clear();
+        this.skills.addAll(dto.getSkills());
+        this.positions.clear();
+        this.positions.addAll(positions);
+        this.grades.clear();
+        this.grades.addAll(grades);
+        this.period = PeriodRequestDto.to(dto.getPeriod());
+        changeStatusByDeadline();
     }
 }

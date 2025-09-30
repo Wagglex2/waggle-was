@@ -89,5 +89,22 @@ public abstract class BaseRecruitment {
         this.content = content;
         this.deadline = deadline;
     }
+
+    protected void update(String title, String content, LocalDateTime deadline) {
+        this.title = title;
+        this.content = content;
+        this.deadline = deadline;
+    }
+
+    protected void changeStatusByDeadline() {
+        if (this.status == RecruitmentStatus.CANCELED) {
+            return;
+        }
+
+        // 변경된 마감일에 맞춰 상태 업데이트
+        this.status = this.deadline.isBefore(LocalDateTime.now())
+                          ? RecruitmentStatus.CLOSED
+                          : RecruitmentStatus.RECRUITING;
+    }
 }
 
