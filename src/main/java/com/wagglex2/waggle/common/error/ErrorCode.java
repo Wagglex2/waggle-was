@@ -63,6 +63,8 @@ public enum ErrorCode {
     // 500
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "서버 오류가 발생했습니다."),
     DATABASE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "DATABASE_ERROR", "데이터베이스 오류가 발생했습니다."),
+    REDIS_CONNECTION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "REDIS_CONNECTION_ERROR", "Redis 연결에 실패했습니다."),
+    EMAIL_CREATE_MESSAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "EMAIL_CREATE_MESSAGE_FAILED", "이메일 메시지를 생성하는데 실패했습니다"),
     EMAIL_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "EMAIL_SEND_FAILED", "이메일 발송에 실패했습니다.");
 
     private final HttpStatus httpStatus;

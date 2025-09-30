@@ -3,6 +3,7 @@ package com.wagglex2.waggle.domain.auth.controller;
 import com.wagglex2.waggle.common.response.ApiResponse;
 import com.wagglex2.waggle.common.security.jwt.JwtUtil;
 import com.wagglex2.waggle.domain.auth.dto.request.EmailVerificationRequestDto;
+import com.wagglex2.waggle.domain.auth.dto.request.SignInRequestDto;
 import com.wagglex2.waggle.domain.auth.dto.request.SignUpRequestDto;
 import com.wagglex2.waggle.domain.auth.dto.response.TokenPair;
 import com.wagglex2.waggle.domain.auth.service.AuthService;
@@ -27,9 +28,9 @@ public class AuthController {
 
     private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
 
+    private final JwtUtil jwtUtil;
     private final AuthService authService;
     private final UserService userService;
-    private final JwtUtil jwtUtil;
 
     /**
      * 회원가입 이메일 인증을 위한 인증번호를 발송한다.
@@ -82,6 +83,40 @@ public class AuthController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.ok("회원가입에 성공했습니다.", userId));
+    }
+
+    /**
+     * 로그인 요청을 처리한다.
+     *
+     * <p>처리 순서:</p>
+     * <ol>
+     *     <li>요청 DTO를 {@code @Valid}로 검증</li>
+     *     <li>{@link AuthService#login(SignInRequestDto)} 호출 → Access Token 및 Refresh Token 발급</li>
+     *     <li>Access Token을 HTTP 응답 헤더 {@code Authorization}에 추가</li>
+     *     <li>Refresh Token을 HttpOnly 쿠키로 추가</li>
+     *     <li>HTTP 상태코드 {@code 200 OK}와 함께 ApiResponse로 응답</li>
+     * </ol>
+     *
+     * @param dto      로그인 요청 DTO (username, password)
+     * @param response HttpServletResponse (헤더 및 쿠키 추가용)
+     * @return 로그인 성공 메시지를 포함한 응답
+     * @see AuthService#login(SignInRequestDto)
+     */
+    @PostMapping("/sign-in")
+    public ResponseEntity<ApiResponse<Void>> signIn(@Valid @RequestBody SignInRequestDto dto,
+                                                    HttpServletResponse response) {
+
+        // 1. 로그인 처리
+        TokenPair tokens = authService.login(dto);
+
+        // 2. Access Token -> 헤더에 추가
+        response.setHeader("Authorization", "Bearer " + tokens.accessToken());
+
+        // 3. Refresh Token -> 쿠키에 추가
+        addCookie(response, tokens.refreshToken(), REFRESH_TOKEN_COOKIE_NAME, jwtUtil.getRefreshExpMills() / 1000);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.ok("로그인에 성공했습니다."));
     }
 
     /**
