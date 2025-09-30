@@ -33,6 +33,7 @@ import java.util.Set;
  */
 @Table(name = "assignments")
 @Entity
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Assignment extends BaseRecruitment {
     @Column(nullable = false)
