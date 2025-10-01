@@ -55,4 +55,17 @@ public class ProjectController {
                 ApiResponse.ok("프로젝트 공고를 성공적으로 수정하였습니다.")
         );
     }
+
+    @DeleteMapping("/{projectId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> deleteProject(
+            @PathVariable Long projectId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        projectService.deleteProject(userDetails.getUserId(), projectId);
+
+        return ResponseEntity.ok(
+                ApiResponse.ok("프로젝트 공고를 성공적으로 삭제하였습니다.")
+        );
+    }
 }

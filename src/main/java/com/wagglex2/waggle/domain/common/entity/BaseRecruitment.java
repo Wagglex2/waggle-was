@@ -106,5 +106,9 @@ public abstract class BaseRecruitment {
                           ? RecruitmentStatus.CLOSED
                           : RecruitmentStatus.RECRUITING;
     }
+
+    public void cancel() {
+        this.status = RecruitmentStatus.CANCELED;
+    }
 }
 
