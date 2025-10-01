@@ -79,6 +79,7 @@ public class ProjectServiceImpl implements ProjectService {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
+        // 논리적 삭제
         project.cancel();
     }
 }

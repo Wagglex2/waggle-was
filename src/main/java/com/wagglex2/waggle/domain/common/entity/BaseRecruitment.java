@@ -107,6 +107,7 @@ public abstract class BaseRecruitment {
                           : RecruitmentStatus.RECRUITING;
     }
 
+    // 논리적 삭제
     public void cancel() {
         this.status = RecruitmentStatus.CANCELED;
     }
