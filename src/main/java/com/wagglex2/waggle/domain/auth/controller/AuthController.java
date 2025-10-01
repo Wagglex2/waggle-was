@@ -3,17 +3,15 @@ package com.wagglex2.waggle.domain.auth.controller;
 import com.wagglex2.waggle.common.response.ApiResponse;
 import com.wagglex2.waggle.common.security.CustomUserDetails;
 import com.wagglex2.waggle.common.security.jwt.JwtUtil;
+import com.wagglex2.waggle.domain.auth.dto.request.EmailRequestDto;
 import com.wagglex2.waggle.domain.auth.dto.request.EmailVerificationRequestDto;
 import com.wagglex2.waggle.domain.auth.dto.request.SignInRequestDto;
 import com.wagglex2.waggle.domain.auth.dto.request.SignUpRequestDto;
 import com.wagglex2.waggle.domain.auth.dto.response.TokenPair;
 import com.wagglex2.waggle.domain.auth.service.AuthService;
 import com.wagglex2.waggle.domain.user.service.UserService;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -27,7 +25,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-@Validated
 @Slf4j
 public class AuthController {
 
@@ -40,14 +37,14 @@ public class AuthController {
     /**
      * 회원가입 이메일 인증을 위한 인증번호를 발송한다.
      *
-     * @param email 인증번호를 받을 사용자 이메일
+     * @param dto 인증번호를 받을 사용자 이메일
      * @return ApiResponse(Void) — 성공 시 "이메일 전송에 성공했습니다."
      */
     @PostMapping("/email/code")
     public ResponseEntity<ApiResponse<Void>> sendEmailAuthCode(
-            @RequestParam @Email(message = "올바른 이메일 형식이 아닙니다.") String email
-    ) {
-        authService.sendAuthCode(email);
+            @Valid @RequestBody EmailRequestDto dto
+            ) {
+        authService.sendAuthCode(dto.email());
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.ok("이메일 전송에 성공했습니다."));
