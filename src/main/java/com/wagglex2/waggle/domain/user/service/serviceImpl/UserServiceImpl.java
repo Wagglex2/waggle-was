@@ -4,6 +4,7 @@ import com.wagglex2.waggle.common.error.ErrorCode;
 import com.wagglex2.waggle.common.exception.BusinessException;
 import com.wagglex2.waggle.domain.auth.dto.request.SignUpRequestDto;
 import com.wagglex2.waggle.domain.user.dto.request.PasswordRequestDto;
+import com.wagglex2.waggle.domain.user.dto.response.UserResponseDto;
 import com.wagglex2.waggle.domain.user.entity.User;
 import com.wagglex2.waggle.domain.user.repository.UserRepository;
 import com.wagglex2.waggle.domain.user.service.UserService;
@@ -31,6 +32,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findById(Long id) {
         return userRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    @Override
+    public User findByIdWithSkills(Long id) {
+        return userRepository.findByIdWithSkills(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
 
@@ -119,5 +126,26 @@ public class UserServiceImpl implements UserService {
         user.changePassword(encodedPassword);
 
         log.info("비밀번호 변경 성공 : userId = {}", userId);
+    }
+
+    /**
+     * 주어진 userId를 기반으로 사용자 정보를 조회하고 DTO로 변환한다.
+     *
+     * <p>처리 흐름:</p>
+     * <ol>
+     *   <li>{@code findByIdWithSkills(userId)} 호출 → User 엔티티 + skills 컬렉션을 Fetch Join으로 로딩</li>
+     *   <li>조회된 User 엔티티를 {@code UserResponseDto.from(user)}로 변환</li>
+     *   <li>정상 조회 시 info 로그 출력</li>
+     * </ol>
+     *
+     * @param userId 조회할 사용자의 식별자
+     * @return UserResponseDto 변환 객체
+     */
+    @Override
+    public UserResponseDto getUserInfo(Long userId) {
+        User user = findByIdWithSkills(userId);
+
+        log.info("회원정보 불러오기 성공 : userId = {}", userId);
+        return UserResponseDto.from(user);
     }
 }

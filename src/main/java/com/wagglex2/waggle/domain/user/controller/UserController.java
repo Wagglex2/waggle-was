@@ -3,6 +3,7 @@ package com.wagglex2.waggle.domain.user.controller;
 import com.wagglex2.waggle.common.response.ApiResponse;
 import com.wagglex2.waggle.common.security.CustomUserDetails;
 import com.wagglex2.waggle.domain.user.dto.request.PasswordRequestDto;
+import com.wagglex2.waggle.domain.user.dto.response.UserResponseDto;
 import com.wagglex2.waggle.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -114,11 +115,32 @@ public class UserController {
             @Valid @RequestBody PasswordRequestDto dto,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Long userId = userDetails.getUserId();
-
-        userService.changePassword(userId, dto);
+        userService.changePassword(userDetails.getUserId(), dto);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.ok("비밀번호 변경에 성공했습니다."));
+    }
+
+    /**
+     * 현재 로그인한 사용자의 정보를 조회한다.
+     *
+     * <p>처리 흐름:</p>
+     * <ol>
+     *   <li>Spring Security의 {@code @AuthenticationPrincipal}을 통해 인증된 사용자 정보(CustomUserDetails) 획득</li>
+     *   <li>해당 userId를 기반으로 {@code userService.getUserInfo()} 호출 → UserResponseDto 변환</li>
+     *   <li>ApiResponse 래핑을 통해 일관된 응답 형식으로 반환</li>
+     * </ol>
+     *
+     * @param userDetails 현재 인증된 사용자 정보 (CustomUserDetails)
+     * @return 현재 로그인한 사용자의 UserResponseDto 응답
+     */
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<UserResponseDto>> getMe(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        UserResponseDto data = userService.getUserInfo(userDetails.getUserId());
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.ok("회원정보를 불러오는데 성공했습니다.", data));
     }
 }
