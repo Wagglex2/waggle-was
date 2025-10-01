@@ -3,10 +3,12 @@ package com.wagglex2.waggle.domain.user.service.serviceImpl;
 import com.wagglex2.waggle.common.error.ErrorCode;
 import com.wagglex2.waggle.common.exception.BusinessException;
 import com.wagglex2.waggle.domain.auth.dto.request.SignUpRequestDto;
+import com.wagglex2.waggle.domain.user.dto.request.PasswordRequestDto;
 import com.wagglex2.waggle.domain.user.entity.User;
 import com.wagglex2.waggle.domain.user.repository.UserRepository;
 import com.wagglex2.waggle.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -84,5 +87,37 @@ public class UserServiceImpl implements UserService {
 
         User user = dto.toEntity(passwordEncoder);
         return userRepository.save(user).getId();
+    }
+
+    /**
+     * 사용자 비밀번호를 변경한다.
+     *
+     * <p>처리 순서:</p>
+     * <ol>
+     *   <li>userId로 사용자를 조회한다.</li>
+     *   <li>입력된 기존 비밀번호(dto.old())가 DB에 저장된 비밀번호와 일치하는지 검증한다.</li>
+     *   <li>검증 실패 시 PASSWORD_NOT_MATCH 예외를 발생시킨다.</li>
+     *   <li>새로운 비밀번호(dto.newPassword())를 암호화(encode)한다.</li>
+     *   <li>엔티티(User)의 changePassword 메서드를 호출하여 암호화된 비밀번호로 교체한다.</li>
+     *   <li>비밀번호 변경 성공 로그를 남긴다.</li>
+     * </ol>
+     *
+     * @param userId 비밀번호를 변경할 사용자 ID
+     * @param dto 비밀번호 변경 요청 DTO (old, newPassword, passwordConfirm 포함)
+     * @throws BusinessException PASSWORD_NOT_MATCH (기존 비밀번호 불일치 시)
+     */
+    @Override
+    @Transactional
+    public void changePassword(Long userId, PasswordRequestDto dto) {
+        User user = findById(userId);
+
+        if (!passwordEncoder.matches(dto.old(), user.getPassword())) {
+            throw new BusinessException(ErrorCode.PASSWORD_NOT_MATCH);
+        }
+
+        String encodedPassword = passwordEncoder.encode(dto.newPassword());
+        user.changePassword(encodedPassword);
+
+        log.info("비밀번호 변경 성공 : userId = {}", userId);
     }
 }

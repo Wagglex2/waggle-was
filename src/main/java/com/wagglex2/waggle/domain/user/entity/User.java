@@ -107,4 +107,8 @@ public class User {
         this.shortIntro = shortIntro;
         this.role = role;
     }
+
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
 }
