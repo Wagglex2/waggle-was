@@ -15,6 +15,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -152,10 +153,10 @@ public class AuthServiceImpl implements AuthService {
      * @param toEmail   인증번호를 받은 이메일
      * @param inputCode 사용자가 입력한 인증번호
      * @throws BusinessException <ul>
-     *                                       <li>{@link ErrorCode#INVALID_REQUEST} : 이메일 또는 인증번호가 누락됨</li>
-     *                                       <li>{@link ErrorCode#VERIFICATION_CODE_EXPIRED} : 인증번호가 존재하지 않거나 만료됨</li>
-     *                                       <li>{@link ErrorCode#INVALID_VERIFICATION_CODE} : 입력된 인증번호 불일치</li>
-     *                                   </ul>
+     *                                                                 <li>{@link ErrorCode#INVALID_REQUEST} : 이메일 또는 인증번호가 누락됨</li>
+     *                                                                 <li>{@link ErrorCode#VERIFICATION_CODE_EXPIRED} : 인증번호가 존재하지 않거나 만료됨</li>
+     *                                                                 <li>{@link ErrorCode#INVALID_VERIFICATION_CODE} : 입력된 인증번호 불일치</li>
+     *                                                             </ul>
      */
     @Override
     public void verifyCode(String toEmail, String inputCode) {
@@ -208,10 +209,10 @@ public class AuthServiceImpl implements AuthService {
      * @param dto 로그인 요청 DTO (username, password)
      * @return Access / Refresh Token 쌍
      * @throws BusinessException <ul>
-     *                             <li>{@link ErrorCode#INVALID_CREDENTIALS} : 잘못된 로그인 정보</li>
-     *                             <li>{@link ErrorCode#REDIS_CONNECTION_ERROR} : Redis 연결 실패</li>
-     *                             <li>{@link ErrorCode#INTERNAL_SERVER_ERROR} : 기타 서버 내부 오류</li>
-     *                           </ul>
+     *                                                       <li>{@link ErrorCode#INVALID_CREDENTIALS} : 잘못된 로그인 정보</li>
+     *                                                       <li>{@link ErrorCode#REDIS_CONNECTION_ERROR} : Redis 연결 실패</li>
+     *                                                       <li>{@link ErrorCode#INTERNAL_SERVER_ERROR} : 기타 서버 내부 오류</li>
+     *                                                     </ul>
      */
     @Override
     public TokenPair login(SignInRequestDto dto) {
@@ -258,6 +259,37 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ErrorCode.REDIS_CONNECTION_ERROR);
         } catch (Exception e) {
             log.warn("로그인 처리 중 오류 발생 : {}", e.getMessage());
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Redis에서 특정 사용자의 Refresh Token을 삭제한다.
+     *
+     * <p>처리 순서:</p>
+     * <ol>
+     *   <li>사용자의 Redis Key를 생성한다. (형식: REFRESH_TOKEN_PREFIX + userId)</li>
+     *   <li>Redis에서 해당 Key를 삭제한다.</li>
+     *   <li>삭제 성공 시 로그를 기록한다.</li>
+     *   <li>삭제 과정에서 예외가 발생하면 BusinessException을 발생시킨다.</li>
+     * </ol>
+     *
+     * @param userId Refresh Token을 삭제할 대상 사용자 ID
+     * @throws BusinessException REDIS_CONNECTION_ERROR Redis 연결 실패 시
+     * @throws BusinessException INTERNAL_SERVER_ERROR   삭제 중 알 수 없는 오류가 발생한 경우
+     */
+    @Override
+    public void deleteRefreshToken(Long userId) {
+        try {
+            String redisKey = REFRESH_TOKEN_PREFIX + userId;
+            redisTemplate.delete(redisKey);
+
+            log.info("Refresh Token 삭제 완료 : {}", userId);
+        } catch (RedisConnectionException e) {
+            log.warn("Refresh Token 삭제 중 Redis 연결 실패 : {}", e.getMessage());
+            throw new BusinessException(ErrorCode.REDIS_CONNECTION_ERROR);
+        } catch (Exception e) {
+            log.warn("Refresh Token 삭제 중 오류 발생 : {}", e.getMessage());
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
