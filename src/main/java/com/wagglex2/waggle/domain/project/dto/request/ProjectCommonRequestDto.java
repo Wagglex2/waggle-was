@@ -15,7 +15,6 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
-import java.time.chrono.ChronoLocalDateTime;
 import java.util.Set;
 
 /**
@@ -79,8 +78,7 @@ public abstract class ProjectCommonRequestDto extends BaseRecruitmentRequestDto 
     }
 
     public void validate() {
-        if (getDeadline().isAfter(
-                ChronoLocalDateTime.from(period.endDate()))
+        if (getDeadline().isAfter(period.endDate().atTime(23, 59, 59))
         ) {
             throw new BusinessException(
                     ErrorCode.INVALID_DATE_RANGE,

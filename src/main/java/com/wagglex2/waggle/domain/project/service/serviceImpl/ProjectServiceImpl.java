@@ -59,6 +59,7 @@ public class ProjectServiceImpl implements ProjectService {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
+        // 삭제 여부 검증
         if (project.getStatus() == RecruitmentStatus.CANCELED) {
             return;
         }
