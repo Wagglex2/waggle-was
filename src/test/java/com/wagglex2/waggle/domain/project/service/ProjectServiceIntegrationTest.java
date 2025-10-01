@@ -48,9 +48,8 @@ public class ProjectServiceIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        user = createUser();
-        User saved = userRepository.save(user);
-        CustomUserDetails customUserDetails = new CustomUserDetails(saved);
+        user = createUser();userRepository.save(user);
+        CustomUserDetails customUserDetails = new CustomUserDetails(user);
         Authentication auth = new UsernamePasswordAuthenticationToken(customUserDetails, null, List.of());
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
@@ -87,6 +86,27 @@ public class ProjectServiceIntegrationTest {
         // 공고 상태가 '마감'으로 바뀌었는지 확인
         assertThat(beforeStatus).isEqualTo(RecruitmentStatus.RECRUITING);
         assertThat(updated.getStatus()).isEqualTo(RecruitmentStatus.CLOSED);
+    }
+
+    @Test
+    @DisplayName("프로젝트 공고 삭제 시, 상태가 'CANCELED'로 바뀌어야 한다.")
+    void cancelProject() {
+        // given
+        Project project = createProject();
+        projectRepository.save(project);
+
+        Long userId = project.getUser().getId();
+        Long projectId = project.getId();
+        RecruitmentStatus beforeStatus = project.getStatus();
+
+        // 삭제 전 상태 확인
+        assertThat(beforeStatus).isEqualTo(RecruitmentStatus.RECRUITING);
+
+        // when
+        projectService.deleteProject(userId, projectId);
+
+        // then
+        assertThat(project.getStatus()).isEqualTo(RecruitmentStatus.CANCELED);
     }
 
     private ProjectUpdateRequestDto createUpdateDto() {
