@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -111,6 +112,7 @@ public class UserController {
      * @return ApiResponse<Void> — 성공 메시지를 담은 OK(200) 응답
      */
     @PostMapping("/me/password-change")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<Void>> passwordChange(
             @Valid @RequestBody PasswordRequestDto dto,
             @AuthenticationPrincipal CustomUserDetails userDetails
@@ -135,6 +137,7 @@ public class UserController {
      * @return 현재 로그인한 사용자의 UserResponseDto 응답
      */
     @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<UserResponseDto>> getMe(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
