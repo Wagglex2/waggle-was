@@ -4,6 +4,7 @@ import com.wagglex2.waggle.common.error.ErrorCode;
 import com.wagglex2.waggle.common.exception.BusinessException;
 import com.wagglex2.waggle.domain.auth.dto.request.SignUpRequestDto;
 import com.wagglex2.waggle.domain.user.dto.request.PasswordRequestDto;
+import com.wagglex2.waggle.domain.user.dto.request.UserUpdateRequestDto;
 import com.wagglex2.waggle.domain.user.dto.response.UserResponseDto;
 import com.wagglex2.waggle.domain.user.entity.User;
 import com.wagglex2.waggle.domain.user.repository.UserRepository;
@@ -13,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -146,6 +148,62 @@ public class UserServiceImpl implements UserService {
         User user = findByIdWithSkills(userId);
 
         log.info("회원정보 불러오기 성공 : userId = {}", userId);
+        return UserResponseDto.from(user);
+    }
+
+    /**
+     * 사용자 프로필 정보를 업데이트한다.
+     *
+     * <p><b>처리 흐름:</b></p>
+     * <ol>
+     *   <li>userId를 기반으로 사용자 엔티티 조회 (skills 연관관계 포함)</li>
+     *   <li>수정 요청 DTO({@link UserUpdateRequestDto})의 각 필드를 검사</li>
+     *   <li>null이 아니거나 유효한 값이 존재하는 경우에만 해당 엔티티 필드 업데이트</li>
+     *   <li>skills는 전체 덮어쓰기(Replace) 방식으로 처리</li>
+     *   <li>업데이트 완료 후 엔티티를 {@link UserResponseDto}로 변환하여 반환</li>
+     * </ol>
+     *
+     * <p><b>트랜잭션 동작:</b></p>
+     * <ul>
+     *   <li>{@code @Transactional} 적용으로 메서드 실행 중 발생한 모든 변경 사항은 하나의 트랜잭션으로 처리</li>
+     *   <li>예외 발생 시 롤백되어 데이터 일관성을 보장</li>
+     * </ul>
+     *
+     * @param userId 수정 대상 사용자 ID
+     * @param dto    수정 요청 DTO ({@link UserUpdateRequestDto})
+     * @return 최신 사용자 정보를 담은 {@link UserResponseDto}
+     */
+    @Override
+    @Transactional
+    public UserResponseDto updateUserInfo(Long userId, UserUpdateRequestDto dto) {
+        User user = findByIdWithSkills(userId);
+
+        if (StringUtils.hasText(dto.nickname())) {
+            boolean duplicated = existsByNickname(dto.nickname());
+            if (duplicated && !user.getNickname().equals(dto.nickname())) {
+                throw new BusinessException(ErrorCode.DUPLICATED_NICKNAME);
+            }
+            user.updateNickname(dto.nickname());
+        }
+
+        if (dto.grade() != null) {
+            user.updateGrade(dto.grade());
+        }
+
+        if (dto.position() != null) {
+            user.updatePosition(dto.position());
+        }
+
+        if (dto.skills() != null) {
+            user.updateSkills(dto.skills());
+        }
+
+        if (StringUtils.hasText(dto.shortIntro())) {
+            user.updateShortIntro(dto.shortIntro());
+        }
+
+        log.info("회원정보 수정 성공 : userId = {}", userId);
+
         return UserResponseDto.from(user);
     }
 }

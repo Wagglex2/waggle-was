@@ -3,6 +3,7 @@ package com.wagglex2.waggle.domain.user.controller;
 import com.wagglex2.waggle.common.response.ApiResponse;
 import com.wagglex2.waggle.common.security.CustomUserDetails;
 import com.wagglex2.waggle.domain.user.dto.request.PasswordRequestDto;
+import com.wagglex2.waggle.domain.user.dto.request.UserUpdateRequestDto;
 import com.wagglex2.waggle.domain.user.dto.response.UserResponseDto;
 import com.wagglex2.waggle.domain.user.service.UserService;
 import jakarta.validation.Valid;
@@ -107,7 +108,7 @@ public class UserController {
      *   <li>비밀번호 변경 성공 시 성공 응답(ApiResponse<Void>)을 반환한다.</li>
      * </ol>
      *
-     * @param dto 비밀번호 변경 요청 DTO (기존 비밀번호, 새 비밀번호, 확인 비밀번호 포함)
+     * @param dto         비밀번호 변경 요청 DTO (기존 비밀번호, 새 비밀번호, 확인 비밀번호 포함)
      * @param userDetails 현재 인증된 사용자 정보
      * @return ApiResponse<Void> — 성공 메시지를 담은 OK(200) 응답
      */
@@ -145,5 +146,32 @@ public class UserController {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.ok("회원정보를 불러오는데 성공했습니다.", data));
+    }
+
+    /**
+     * 현재 로그인한 사용자의 프로필 정보를 수정한다.
+     *
+     * <p><b>처리 흐름:</b></p>
+     * <ol>
+     *   <li>Spring Security의 {@code @AuthenticationPrincipal}을 통해 인증된 사용자 정보(CustomUserDetails) 획득</li>
+     *   <li>수정 요청 DTO({@link UserUpdateRequestDto})를 기반으로 {@code userService.updateUserInfo()} 호출</li>
+     *   <li>엔티티 업데이트 후 {@link UserResponseDto}로 변환</li>
+     *   <li>{@link ApiResponse} 래핑을 통해 최신 사용자 정보 반환</li>
+     * </ol>
+     *
+     * @param userDetails 현재 인증된 사용자 정보 (CustomUserDetails)
+     * @param dto         수정 요청 DTO ({@link UserUpdateRequestDto})
+     * @return 수정된 사용자 프로필 정보 ({@link UserResponseDto})를 담은 응답
+     */
+    @PatchMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<UserResponseDto>> updateMe(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody UserUpdateRequestDto dto
+    ) {
+        UserResponseDto data = userService.updateUserInfo(userDetails.getUserId(), dto);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.ok("회원정보를 수정하는데 성공했습니다.", data));
     }
 }

@@ -111,4 +111,24 @@ public class User {
     public void changePassword(String encodedPassword) {
         this.password = encodedPassword;
     }
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void updateGrade(Integer grade) {
+        this.grade = grade;
+    }
+
+    public void updatePosition(PositionType position) {
+        this.position = position;
+    }
+
+    public void updateSkills(Set<Skill> skills) {
+        this.skills = skills;
+    }
+
+    public void updateShortIntro(String shortIntro) {
+        this.shortIntro = shortIntro;
+    }
 }
