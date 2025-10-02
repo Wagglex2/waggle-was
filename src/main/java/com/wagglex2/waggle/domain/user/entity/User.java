@@ -4,6 +4,7 @@ import com.wagglex2.waggle.domain.common.type.PositionType;
 import com.wagglex2.waggle.domain.common.type.Skill;
 import com.wagglex2.waggle.domain.user.entity.type.University;
 import com.wagglex2.waggle.domain.user.entity.type.UserRoleType;
+import com.wagglex2.waggle.domain.user.entity.type.UserStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -86,10 +87,15 @@ public class User {
     private UserRoleType role;
 
     @CreatedDate
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserStatus status = UserStatus.ACTIVE;
 
     @Builder
     private User(
@@ -130,5 +136,9 @@ public class User {
 
     public void updateShortIntro(String shortIntro) {
         this.shortIntro = shortIntro;
+    }
+
+    public void withdraw() {
+        this.status = UserStatus.WITHDRAWN;
     }
 }

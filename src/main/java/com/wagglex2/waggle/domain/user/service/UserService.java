@@ -17,4 +17,5 @@ public interface UserService {
     void changePassword(Long userId, PasswordRequestDto dto);
     UserResponseDto getUserInfo(Long userId);
     UserResponseDto updateUserInfo(Long userId, UserUpdateRequestDto dto);
+    void withdraw(Long userId, String rawPassword);
 }

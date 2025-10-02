@@ -7,10 +7,13 @@ import com.wagglex2.waggle.domain.user.dto.request.PasswordRequestDto;
 import com.wagglex2.waggle.domain.user.dto.request.UserUpdateRequestDto;
 import com.wagglex2.waggle.domain.user.dto.response.UserResponseDto;
 import com.wagglex2.waggle.domain.user.entity.User;
+import com.wagglex2.waggle.domain.user.entity.type.UserStatus;
 import com.wagglex2.waggle.domain.user.repository.UserRepository;
 import com.wagglex2.waggle.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,8 +25,11 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public class UserServiceImpl implements UserService {
 
+    private static final String REFRESH_TOKEN_PREFIX = "RT:";
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Override
     public User findByUsername(String username) {
@@ -117,6 +123,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional
+    @PreAuthorize("#userId == authentication.principal.userId")
     public void changePassword(Long userId, PasswordRequestDto dto) {
         User user = findById(userId);
 
@@ -144,6 +151,7 @@ public class UserServiceImpl implements UserService {
      * @return UserResponseDto 변환 객체
      */
     @Override
+    @PreAuthorize("#userId == authentication.principal.userId")
     public UserResponseDto getUserInfo(Long userId) {
         User user = findByIdWithSkills(userId);
 
@@ -175,6 +183,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional
+    @PreAuthorize("#userId == authentication.principal.userId")
     public UserResponseDto updateUserInfo(Long userId, UserUpdateRequestDto dto) {
         User user = findByIdWithSkills(userId);
 
@@ -205,5 +214,44 @@ public class UserServiceImpl implements UserService {
         log.info("회원정보 수정 성공 : userId = {}", userId);
 
         return UserResponseDto.from(user);
+    }
+
+    /**
+     * 회원 탈퇴 서비스 로직
+     *
+     * <p><b>처리 순서:</b></p>
+     * <ol>
+     *   <li>userId 기준으로 사용자 엔티티 조회</li>
+     *   <li>입력받은 비밀번호(rawPassword)와 저장된 비밀번호 해시 비교</li>
+     *   <li>이미 탈퇴된 회원인지 상태 검증</li>
+     *   <li>탈퇴 처리 (Soft Delete: {@link UserStatus#WITHDRAWN})</li>
+     *   <li>Redis에 저장된 Refresh Token 제거 (재로그인 차단)</li>
+     *   <li>로그 출력</li>
+     * </ol>
+     *
+     * @param userId      탈퇴할 사용자 ID
+     * @param rawPassword 클라이언트에서 전달한 평문 비밀번호
+     * @throws BusinessException 비밀번호 불일치, 이미 탈퇴된 회원인 경우
+     */
+    @Override
+    @Transactional
+    @PreAuthorize("#userId == authentication.principal.userId")
+    public void withdraw(Long userId, String rawPassword) {
+        User user = findById(userId);
+
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new BusinessException(ErrorCode.MISMATCHED_PASSWORD);
+        }
+
+        if (user.getStatus() == UserStatus.WITHDRAWN) {
+            throw new BusinessException(ErrorCode.ALREADY_WITHDRAWN_USER);
+        }
+
+        user.withdraw();
+
+        String redisKey = REFRESH_TOKEN_PREFIX + userId;
+        redisTemplate.delete(redisKey);
+
+        log.info("회원 탈퇴 성공 : userId = {}", userId);
     }
 }

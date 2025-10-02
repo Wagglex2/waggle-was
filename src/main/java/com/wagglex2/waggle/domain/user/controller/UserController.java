@@ -4,8 +4,10 @@ import com.wagglex2.waggle.common.response.ApiResponse;
 import com.wagglex2.waggle.common.security.CustomUserDetails;
 import com.wagglex2.waggle.domain.user.dto.request.PasswordRequestDto;
 import com.wagglex2.waggle.domain.user.dto.request.UserUpdateRequestDto;
+import com.wagglex2.waggle.domain.user.dto.request.WithdrawRequestDto;
 import com.wagglex2.waggle.domain.user.dto.response.UserResponseDto;
 import com.wagglex2.waggle.domain.user.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -13,6 +15,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,6 +28,9 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 @Slf4j
 public class UserController {
+
+    private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
+
     private final UserService userService;
 
     /**
@@ -173,5 +179,72 @@ public class UserController {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.ok("회원정보를 수정하는데 성공했습니다.", data));
+    }
+
+    /**
+     * 회원 탈퇴 API
+     *
+     * <p><b>처리 흐름:</b></p>
+     * <ol>
+     *   <li>인증된 사용자(@AuthenticationPrincipal) 정보를 가져옴</li>
+     *   <li>요청 본문으로 전달된 {@link WithdrawRequestDto}에서 비밀번호를 검증</li>
+     *   <li>서비스 계층 {@code userService.withdraw()} 호출 → 비밀번호 확인, 소프트 삭제, Refresh Token 제거</li>
+     *   <li>추가적으로 응답 쿠키에서 Refresh Token을 만료 처리 (Max-Age=0)</li>
+     *   <li>탈퇴 성공 메시지를 포함한 200 OK 응답 반환</li>
+     * </ol>
+     *
+     *
+     * @param userDetails 인증된 사용자 정보 (Spring Security Principal)
+     * @param dto         탈퇴 요청 DTO (비밀번호 포함)
+     * @param response    HTTP 응답 객체 (쿠키 만료 처리용)
+     * @return {@link ApiResponse} 성공 메시지 (200 OK)
+     */
+    @DeleteMapping("/me/withdraw")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> withdraw(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody WithdrawRequestDto dto,
+            HttpServletResponse response
+    ) {
+        userService.withdraw(userDetails.getUserId(), dto.password());
+
+        addCookie(response, "", REFRESH_TOKEN_COOKIE_NAME, 0);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.ok("회원탈퇴에 성공했습니다."));
+    }
+
+    /**
+     * 주어진 토큰을 응답 쿠키에 설정한다.
+     *
+     * <p>설정 옵션:</p>
+     * <ul>
+     *   <li><b>HttpOnly</b>: true (JS에서 접근 불가, XSS 방어)</li>
+     *   <li><b>Secure</b>: true (HTTPS에서만 전송)</li>
+     *   <li><b>SameSite</b>: Lax (기본 CSRF 방어)</li>
+     *   <li><b>Path</b>: "/" (애플리케이션 전역에서 사용 가능)</li>
+     *   <li><b>Max-Age</b>: 토큰 만료 시간(초)</li>
+     * </ul>
+     *
+     * @param response   HTTP 응답
+     * @param token      저장할 토큰 값
+     * @param cookieName 쿠키 이름
+     * @param maxAge     만료 시간(초)
+     */
+    private void addCookie(
+            HttpServletResponse response,
+            String token,
+            String cookieName,
+            long maxAge
+    ) {
+        ResponseCookie cookie = ResponseCookie.from(cookieName, token)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(maxAge)
+                .build();
+
+        response.addHeader("Set-Cookie", cookie.toString());
     }
 }
