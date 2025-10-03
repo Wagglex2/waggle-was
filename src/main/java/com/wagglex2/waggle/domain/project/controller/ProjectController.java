@@ -21,13 +21,13 @@ public class ProjectController {
 
     @PostMapping("/")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<Void>> createProject(
+    public ResponseEntity<ApiResponse<Long>> createProject(
             @RequestBody @Valid ProjectCreationRequestDto requestDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        projectService.createProject(userDetails.getUserId(), requestDto);
+        Long projectId = projectService.createProject(userDetails.getUserId(), requestDto);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.ok("프로젝트 공고를 성공적으로 등록하였습니다."));
+                .body(ApiResponse.ok("프로젝트 공고를 성공적으로 등록하였습니다.", projectId));
     }
 
     @GetMapping("/{projectId}")
