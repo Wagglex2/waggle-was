@@ -67,4 +67,20 @@ public class ProjectServiceImpl implements ProjectService {
 
         project.update(updateDto);
     }
+
+    @PreAuthorize("#userId == authentication.principal.userId")
+    @Transactional
+    @Override
+    public void deleteProject(@P("userId") Long userId, Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
+
+        // 권한 검증
+        if (!userId.equals(project.getUser().getId())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+
+        // 논리적 삭제
+        project.cancel();
+    }
 }

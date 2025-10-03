@@ -106,5 +106,10 @@ public abstract class BaseRecruitment {
                           ? RecruitmentStatus.CLOSED
                           : RecruitmentStatus.RECRUITING;
     }
+
+    // 논리적 삭제
+    public void cancel() {
+        this.status = RecruitmentStatus.CANCELED;
+    }
 }
 

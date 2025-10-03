@@ -91,6 +91,27 @@ public class ProjectServiceIntegrationTest {
         assertThat(project.getStatus()).isEqualTo(RecruitmentStatus.CLOSED);
     }
 
+    @Test
+    @DisplayName("프로젝트 공고 삭제 시, 상태가 'CANCELED'로 바뀌어야 한다.")
+    void cancelProject() {
+        // given
+        Project project = createProject();
+        projectRepository.save(project);
+
+        Long userId = project.getUser().getId();
+        Long projectId = project.getId();
+        RecruitmentStatus beforeStatus = project.getStatus();
+
+        // 삭제 전 상태 확인
+        assertThat(beforeStatus).isEqualTo(RecruitmentStatus.RECRUITING);
+
+        // when
+        projectService.deleteProject(userId, projectId);
+
+        // then
+        assertThat(project.getStatus()).isEqualTo(RecruitmentStatus.CANCELED);
+    }
+
     private ProjectUpdateRequestDto createUpdateDto() {
         // 마감일이 '오늘'보다 빠름 -> 수정 시 status가 "CLOSED"로 바뀌어야 함
         LocalDate startDate = LocalDate.now().minusDays(3);
