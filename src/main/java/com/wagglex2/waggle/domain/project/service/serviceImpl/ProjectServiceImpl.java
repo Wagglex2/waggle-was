@@ -26,11 +26,12 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Transactional
     @Override
-    public void createProject(Long userId, ProjectCreationRequestDto requestDto) {
+    public Long createProject(Long userId, ProjectCreationRequestDto requestDto) {
         requestDto.validate();
         User user = userService.findById(userId);
         Project newProject = ProjectCreationRequestDto.toEntity(user, requestDto);
-        projectRepository.save(newProject);
+
+        return projectRepository.save(newProject).getId();
     }
 
     @Transactional

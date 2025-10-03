@@ -1,7 +1,9 @@
 package com.wagglex2.waggle.domain.auth.controller;
 
 import com.wagglex2.waggle.common.response.ApiResponse;
+import com.wagglex2.waggle.common.security.CustomUserDetails;
 import com.wagglex2.waggle.common.security.jwt.JwtUtil;
+import com.wagglex2.waggle.domain.auth.dto.request.EmailRequestDto;
 import com.wagglex2.waggle.domain.auth.dto.request.EmailVerificationRequestDto;
 import com.wagglex2.waggle.domain.auth.dto.request.SignInRequestDto;
 import com.wagglex2.waggle.domain.auth.dto.request.SignUpRequestDto;
@@ -10,19 +12,20 @@ import com.wagglex2.waggle.domain.auth.service.AuthService;
 import com.wagglex2.waggle.domain.user.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-@Validated
 @Slf4j
 public class AuthController {
 
@@ -35,14 +38,14 @@ public class AuthController {
     /**
      * 회원가입 이메일 인증을 위한 인증번호를 발송한다.
      *
-     * @param email 인증번호를 받을 사용자 이메일
+     * @param dto 인증번호를 받을 사용자 이메일
      * @return ApiResponse(Void) — 성공 시 "이메일 전송에 성공했습니다."
      */
     @PostMapping("/email/code")
-    public ResponseEntity<ApiResponse<Void>> sendEmailAuthCode(@RequestParam
-                                                               @Email(message = "올바른 이메일 형식이 아닙니다.")
-                                                               String email) {
-        authService.sendAuthCode(email);
+    public ResponseEntity<ApiResponse<Void>> sendEmailAuthCode(
+            @Valid @RequestBody EmailRequestDto dto
+            ) {
+        authService.sendAuthCode(dto.email());
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.ok("이메일 전송에 성공했습니다."));
@@ -55,7 +58,9 @@ public class AuthController {
      * @return ApiResponse(Void) — 성공 시 "이메일 인증이 완료되었습니다."
      */
     @PostMapping("/email/verify")
-    public ResponseEntity<ApiResponse<Void>> verifyAuthCode(@Valid @RequestBody EmailVerificationRequestDto dto) {
+    public ResponseEntity<ApiResponse<Void>> verifyAuthCode(
+            @Valid @RequestBody EmailVerificationRequestDto dto
+    ) {
         authService.verifyCode(dto.email(), dto.inputCode());
 
         return ResponseEntity.status(HttpStatus.OK)
@@ -78,7 +83,9 @@ public class AuthController {
      * @see UserService#signUp(SignUpRequestDto)
      */
     @PostMapping("/sign-up")
-    public ResponseEntity<ApiResponse<Long>> signUp(@Valid @RequestBody SignUpRequestDto dto) {
+    public ResponseEntity<ApiResponse<Long>> signUp(
+            @Valid @RequestBody SignUpRequestDto dto
+    ) {
         Long userId = userService.signUp(dto);
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -103,8 +110,10 @@ public class AuthController {
      * @see AuthService#login(SignInRequestDto)
      */
     @PostMapping("/sign-in")
-    public ResponseEntity<ApiResponse<Void>> signIn(@Valid @RequestBody SignInRequestDto dto,
-                                                    HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<Void>> signIn(
+            @Valid @RequestBody SignInRequestDto dto,
+            HttpServletResponse response
+    ) {
 
         // 1. 로그인 처리
         TokenPair tokens = authService.login(dto);
@@ -113,10 +122,39 @@ public class AuthController {
         response.setHeader("Authorization", "Bearer " + tokens.accessToken());
 
         // 3. Refresh Token -> 쿠키에 추가
-        addCookie(response, tokens.refreshToken(), REFRESH_TOKEN_COOKIE_NAME, jwtUtil.getRefreshExpMills() / 1000);
+        addCookie(response,
+                tokens.refreshToken(),
+                REFRESH_TOKEN_COOKIE_NAME,
+                jwtUtil.getRefreshExpMills() / 1000
+        );
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.ok("로그인에 성공했습니다."));
+    }
+
+    @PostMapping("/sign-out")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> signOut(HttpServletResponse response,
+                                                     @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long userId = userDetails.getUserId();
+
+        authService.deleteRefreshToken(userId);
+
+        ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
+                .maxAge(0)
+                .path("/")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        log.info("로그아웃 성공 : userId = {}", userId);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.ok("로그아웃에 성공했습니다."));
     }
 
     /**
@@ -135,8 +173,10 @@ public class AuthController {
      * @return ApiResponse(Void) — 성공 시 "토큰 재발급에 성공했습니다."
      */
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<Void>> refreshToken(@CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshToken,
-                                                          HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<Void>> refreshToken(
+            @CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshToken,
+            HttpServletResponse response
+    ) {
         // 1. 토큰 재발급
         TokenPair tokens = authService.reissueTokens(refreshToken);
 
@@ -144,7 +184,11 @@ public class AuthController {
         response.setHeader("Authorization", "Bearer " + tokens.accessToken());
 
         // 2. Refresh Token -> 쿠키 설정
-        addCookie(response, tokens.refreshToken(), REFRESH_TOKEN_COOKIE_NAME, jwtUtil.getRefreshExpMills() / 1000);
+        addCookie(response,
+                tokens.refreshToken(),
+                REFRESH_TOKEN_COOKIE_NAME,
+                jwtUtil.getRefreshExpMills() / 1000
+        );
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.ok("토큰 재발급에 성공했습니다."));
@@ -167,7 +211,12 @@ public class AuthController {
      * @param cookieName 쿠키 이름
      * @param maxAge     만료 시간(초)
      */
-    private void addCookie(HttpServletResponse response, String token, String cookieName, long maxAge) {
+    private void addCookie(
+            HttpServletResponse response,
+            String token,
+            String cookieName,
+            long maxAge
+    ) {
         ResponseCookie cookie = ResponseCookie.from(cookieName, token)
                 .httpOnly(true)
                 .secure(true)
