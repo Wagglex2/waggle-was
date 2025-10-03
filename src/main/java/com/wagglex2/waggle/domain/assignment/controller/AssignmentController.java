@@ -23,12 +23,12 @@ public class AssignmentController {
 
     @PostMapping("/")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<Void>> createAssignment(
+    public ResponseEntity<ApiResponse<Long>> createAssignment(
             @RequestBody @Valid AssignmentCreationRequestDto requestDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        assignmentService.createAssignment(requestDto, userDetails.getUserId());
+        Long assignmentId = assignmentService.createAssignment(requestDto, userDetails.getUserId());
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.ok("과제 공고를 성공적으로 등록하였습니다."));
+                .body(ApiResponse.ok("과제 공고를 성공적으로 등록하였습니다.", assignmentId));
     }
 }

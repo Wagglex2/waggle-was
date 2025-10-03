@@ -6,6 +6,7 @@ import com.wagglex2.waggle.domain.common.dto.request.GradeRequestDto;
 import com.wagglex2.waggle.domain.common.type.ParticipantInfo;
 import com.wagglex2.waggle.domain.user.entity.User;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -28,8 +29,8 @@ public class AssignmentCreationRequestDto extends BaseRecruitmentRequestDto {
     private final String lectureCode;
 
     @NotNull(message = "모집 인원이 누락되었습니다.")
-    @Valid
-    private final ParticipantInfo participants;
+    @Min(value = 1, message = "모집 인원은 1 이상이어야 합니다.")
+    private final Integer maxParticipants;
 
     @NotEmpty(message = "모집 학년이 누락되었습니다.")
     @Valid
@@ -38,13 +39,13 @@ public class AssignmentCreationRequestDto extends BaseRecruitmentRequestDto {
     public AssignmentCreationRequestDto(
             String title, String content, LocalDateTime deadline,
             String department, String lecture, String lectureCode,
-            ParticipantInfo participants, Set<GradeRequestDto> grades
+            Integer maxParticipants, Set<GradeRequestDto> grades
     ) {
         super(title, content, deadline);
         this.department = department;
         this.lecture = lecture;
         this.lectureCode = lectureCode;
-        this.participants = participants;
+        this.maxParticipants = maxParticipants;
         this.grades = grades;
     }
 
@@ -61,7 +62,7 @@ public class AssignmentCreationRequestDto extends BaseRecruitmentRequestDto {
                 .department(dto.getDepartment())
                 .lecture(dto.getLecture())
                 .lectureCode(dto.getLectureCode())
-                .participants(dto.getParticipants())
+                .participants(new ParticipantInfo(dto.getMaxParticipants()))
                 .grades(grades)
                 .build();
     }

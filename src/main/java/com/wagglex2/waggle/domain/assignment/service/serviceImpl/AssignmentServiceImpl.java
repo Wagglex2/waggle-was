@@ -11,17 +11,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class AssignmentServiceImpl implements AssignmentService {
     private final AssignmentRepository assignmentRepository;
     private final UserService userService;
 
+    @Transactional
     @Override
-    public void createAssignment(AssignmentCreationRequestDto requestDto, Long userId) {
+    public Long createAssignment(AssignmentCreationRequestDto requestDto, Long userId) {
         // requestDto.validate();
         User user = userService.findById(userId);
         Assignment newAssignment = AssignmentCreationRequestDto.toEntity(user, requestDto);
-        assignmentRepository.save(newAssignment);
+
+        return assignmentRepository.save(newAssignment).getId();
     }
 }
