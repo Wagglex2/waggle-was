@@ -1,5 +1,6 @@
 package com.wagglex2.waggle.domain.common.dto.request;
 
+import com.wagglex2.waggle.domain.project.dto.request.ProjectCommonRequestDto;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -8,6 +9,25 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
+/**
+ * 모집 공고 공통 요청 DTO
+ * <p>
+ * 모든 공고 요청 관련 DTO에서 공통으로 사용하는 필드를 포함한다.
+ * 마감일은 자동으로 하루의 끝(23:59:59)으로 설정한다.
+ * </p>
+ *
+ * <p><b>보유 필드:</b>
+ * <ul>
+ *     <li>{@link #title} - 공고 제목</li>
+ *     <li>{@link #content} - 공고 본문</li>
+ *     <li>{@link #deadline} - 마감일</li>
+ * </ul>
+ *
+ * <p><b>상속 관계:</b>
+ * <ul>
+ *     <li>하위 클래스: {@link ProjectCommonRequestDto}</li>
+ * </ul>
+ */
 @Getter
 public abstract class BaseRecruitmentRequestDto {
     @NotBlank(message = "제목이 누락되었습니다.")

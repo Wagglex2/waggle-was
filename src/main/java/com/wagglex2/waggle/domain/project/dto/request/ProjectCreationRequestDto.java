@@ -1,8 +1,5 @@
 package com.wagglex2.waggle.domain.project.dto.request;
 
-import com.wagglex2.waggle.common.error.ErrorCode;
-import com.wagglex2.waggle.common.exception.BusinessException;
-import com.wagglex2.waggle.domain.common.dto.request.BaseRecruitmentRequestDto;
 import com.wagglex2.waggle.domain.common.dto.request.GradeRequestDto;
 import com.wagglex2.waggle.domain.common.dto.request.PeriodRequestDto;
 import com.wagglex2.waggle.domain.common.dto.request.PositionInfoCreationRequestDto;
@@ -17,46 +14,51 @@ import jakarta.validation.constraints.*;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
-import java.time.chrono.ChronoLocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * 프로젝트 생성 요청 DTO
+ * <p>
+ * 프로젝트 생성 시 필요한 모든 필드를 포함한다.
+ * {@link ProjectCommonRequestDto}를 상속하며, 생성된 DTO를 {@link Project} 엔티티로 변환할 수 있다.
+ * </p>
+ *
+ * <p><b>보유 필드:</b>
+ * <ul>
+ *     <b>상위 클래스 필드</b>
+ *     <li>{@link #title} - 공고 제목</li>
+ *     <li>{@link #content} - 공고 본문</li>
+ *     <li>{@link #deadline} - 마감일</li>
+ *     <li>{@link #purpose} - 프로젝트 목적</li>
+ *     <li>{@link #meetingType} - 진행 방식</li>
+ *     <li>{@link #skills} - 기술 스택</li>
+ *     <li>{@link #grades} - 모집 학년</li>
+ *     <li>{@link #period} - 프로젝트 기간</li>
+ *     <br>
+ *     <b>현재 클래스 필드</b>
+ *     <li>{@link #positions} - 프로젝트 포지션 정보</li>
+ * </ul>
+ *
+ * <p><b>상속 관계:</b>
+ * <ul>
+ *     <li>상위 클래스: {@link ProjectCommonRequestDto}</li>
+ * </ul>
+ */
 @Getter
-public class ProjectCreationRequestDto extends BaseRecruitmentRequestDto {
-    @NotNull(message = "프로젝트 목적이 누락되었습니다.")
-    private final ProjectPurpose purpose;
-
-    @NotNull(message = "진행 방식이 누락되었습니다.")
-    private final MeetingType meetingType;
-
+public class ProjectCreationRequestDto extends ProjectCommonRequestDto {
     @NotEmpty(message = "포지션 정보가 누락되었습니다.")
     @Valid
     private final Set<PositionInfoCreationRequestDto> positions;
 
-    @NotEmpty(message = "기술 스택이 누락되었습니다.")
-    private final Set<Skill> skills;
-
-    @NotEmpty(message = "모집 학년이 누락되었습니다.")
-    @Size(max = 4, message = "최대 4개의 학년만 선택할 수 있습니다.")
-    @Valid
-    private final Set<GradeRequestDto> grades;
-
-    @Valid
-    private final PeriodRequestDto period;
-
     public ProjectCreationRequestDto(
             String title, String content, LocalDateTime deadline,
-            ProjectPurpose purpose, MeetingType meetingType,
-            Set<PositionInfoCreationRequestDto> positions,
-            Set<Skill> skills, Set<GradeRequestDto> grades, PeriodRequestDto period
+            ProjectPurpose purpose, MeetingType meetingType, Set<Skill> skills,
+            Set<GradeRequestDto> grades, PeriodRequestDto period,
+            Set<PositionInfoCreationRequestDto> positions
     ) {
-        super(title, content, deadline);
-        this.purpose = purpose;
-        this.meetingType = meetingType;
+        super(title, content, deadline, purpose, meetingType, skills, grades, period);
         this.positions = positions;
-        this.skills = skills;
-        this.grades = grades;
-        this.period = period;
     }
 
     public static Project toEntity(User user, ProjectCreationRequestDto dto) {
@@ -80,16 +82,5 @@ public class ProjectCreationRequestDto extends BaseRecruitmentRequestDto {
                 .grades(grades)
                 .period(PeriodRequestDto.to(dto.getPeriod()))
                 .build();
-    }
-
-    public void validate() {
-        if (getDeadline().isAfter(
-                ChronoLocalDateTime.from(period.endDate()))
-        ) {
-            throw new BusinessException(
-                    ErrorCode.INVALID_DATE_RANGE,
-                    "마감일은 종료일 이전이어야 합니다."
-            );
-        }
     }
 }
