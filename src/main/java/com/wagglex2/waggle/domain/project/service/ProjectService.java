@@ -5,7 +5,7 @@ import com.wagglex2.waggle.domain.project.dto.request.ProjectUpdateRequestDto;
 import com.wagglex2.waggle.domain.project.dto.response.ProjectResponseDto;
 
 public interface ProjectService {
-    void createProject(Long userId, ProjectCreationRequestDto projectCreationRequestDto);
+    Long createProject(Long userId, ProjectCreationRequestDto projectCreationRequestDto);
     ProjectResponseDto getProject(Long projectId);
     void updateProject(Long userId, Long projectId, ProjectUpdateRequestDto updateDto);
     void deleteProject(Long userId, Long projectId);

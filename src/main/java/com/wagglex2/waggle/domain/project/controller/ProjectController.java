@@ -3,7 +3,6 @@ package com.wagglex2.waggle.domain.project.controller;
 import com.wagglex2.waggle.common.response.ApiResponse;
 import com.wagglex2.waggle.common.security.CustomUserDetails;
 import com.wagglex2.waggle.domain.project.dto.request.ProjectCreationRequestDto;
-import com.wagglex2.waggle.domain.project.dto.request.ProjectUpdateRequestDto;
 import com.wagglex2.waggle.domain.project.dto.response.ProjectResponseDto;
 import com.wagglex2.waggle.domain.project.service.ProjectService;
 import jakarta.validation.Valid;
@@ -22,14 +21,13 @@ public class ProjectController {
 
     @PostMapping("/")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<Void>> createProject(
+    public ResponseEntity<ApiResponse<Long>> createProject(
             @RequestBody @Valid ProjectCreationRequestDto requestDto,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        projectService.createProject(userDetails.getUserId(), requestDto);
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long projectId = projectService.createProject(userDetails.getUserId(), requestDto);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.ok("프로젝트 공고를 성공적으로 등록하였습니다."));
+                .body(ApiResponse.ok("프로젝트 공고를 성공적으로 등록하였습니다.", projectId));
     }
 
     @GetMapping("/{projectId}")
@@ -39,33 +37,6 @@ public class ProjectController {
 
         return ResponseEntity.ok(
                 ApiResponse.ok("프로젝트 공고를 성공적으로 조회하였습니다.", responseDto)
-        );
-    }
-
-    @PutMapping("/{projectId}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<Void>> updateProject(
-            @PathVariable Long projectId,
-            @RequestBody @Valid ProjectUpdateRequestDto requestDto,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        projectService.updateProject(userDetails.getUserId(), projectId, requestDto);
-
-        return ResponseEntity.ok(
-                ApiResponse.ok("프로젝트 공고를 성공적으로 수정하였습니다.")
-        );
-    }
-
-    @DeleteMapping("/{projectId}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<Void>> deleteProject(
-            @PathVariable Long projectId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        projectService.deleteProject(userDetails.getUserId(), projectId);
-
-        return ResponseEntity.ok(
-                ApiResponse.ok("프로젝트 공고를 성공적으로 삭제하였습니다.")
         );
     }
 }

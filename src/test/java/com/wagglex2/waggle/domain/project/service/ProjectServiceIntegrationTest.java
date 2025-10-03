@@ -59,33 +59,36 @@ public class ProjectServiceIntegrationTest {
     void updateProject() throws InterruptedException {
         // given
         Project project = createProject();
-        Project saved = projectRepository.save(project);
-        projectRepository.flush();
+        projectRepository.save(project);
 
-        Long userId = saved.getUser().getId();
-        Long projectId = saved.getId();
-        LocalDateTime beforeUpdatedAt = saved.getUpdatedAt();
-        RecruitmentStatus beforeStatus = saved.getStatus();
+        Long userId = project.getUser().getId();
+        Long projectId = project.getId();
+
+        LocalDateTime beforeUpdatedAt = project.getUpdatedAt();
+        RecruitmentStatus beforeStatus = project.getStatus();
+
+        // 수정 전 상태 확인
+        assertThat(beforeStatus).isEqualTo(RecruitmentStatus.RECRUITING);
 
         ProjectUpdateRequestDto updateDto = createUpdateDto();
 
         // when
-        Thread.sleep(5000);
+        Thread.sleep(3000);
         projectService.updateProject(userId, projectId, updateDto);
-        projectRepository.flush();
+        projectRepository.flush();  // DB에 반영
 
         // then
-        Project updated = projectRepository.findById(projectId).get();
         // 데이터 변경 확인
-        assertThat(updated).usingRecursiveComparison()
+        assertThat(project).usingRecursiveComparison()
                 .ignoringFields("id", "user", "category", "grades",
                         "createdAt", "updatedAt", "viewCount", "status")
                 .isEqualTo(updateDto);
+
         // 수정일이 갱신되었는지 확인
-        assertThat(saved.getUpdatedAt()).isAfter(beforeUpdatedAt);
-        // 공고 상태가 '마감'으로 바뀌었는지 확인
-        assertThat(beforeStatus).isEqualTo(RecruitmentStatus.RECRUITING);
-        assertThat(updated.getStatus()).isEqualTo(RecruitmentStatus.CLOSED);
+        assertThat(project.getUpdatedAt()).isAfter(beforeUpdatedAt);
+
+        // 공고 상태가 "CLOSED"로 바뀌었는지 확인
+        assertThat(project.getStatus()).isEqualTo(RecruitmentStatus.CLOSED);
     }
 
     @Test
