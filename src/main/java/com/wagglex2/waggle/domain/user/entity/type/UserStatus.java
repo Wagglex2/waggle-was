@@ -9,8 +9,6 @@ package com.wagglex2.waggle.domain.user.entity.type;
  * <ul>
  *   <li>{@link #ACTIVE} : 정상적으로 활동 중인 상태</li>
  *   <li>{@link #WITHDRAWN} : 사용자가 자발적으로 탈퇴한 상태 (Soft Delete)</li>
- *   <li>{@link #SUSPENDED} : 일시적으로 정지된 상태 (운영자 제재 등)</li>
- *   <li>{@link #BANNED} : 영구적으로 차단된 상태</li>
  * </ul>
  *
  * <p><b>사용처:</b></p>
@@ -22,7 +20,5 @@ package com.wagglex2.waggle.domain.user.entity.type;
  */
 public enum UserStatus {
     ACTIVE,
-    WITHDRAWN,
-    SUSPENDED,
-    BANNED
+    WITHDRAWN
 }

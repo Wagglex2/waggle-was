@@ -3,6 +3,7 @@ package com.wagglex2.waggle.domain.user.dto.response;
 import com.wagglex2.waggle.domain.common.type.PositionType;
 import com.wagglex2.waggle.domain.common.type.Skill;
 import com.wagglex2.waggle.domain.user.entity.User;
+import com.wagglex2.waggle.domain.user.entity.type.University;
 
 import java.util.Set;
 
@@ -16,6 +17,7 @@ import java.util.Set;
 public record UserResponseDto(
         String username,
         String email,
+        University university,
         String nickname,
         Integer grade,
         PositionType position,
@@ -26,6 +28,7 @@ public record UserResponseDto(
         return new UserResponseDto(
                 user.getUsername(),
                 user.getEmail(),
+                user.getUniversity(),
                 user.getNickname(),
                 user.getGrade(),
                 user.getPosition(),

@@ -128,7 +128,7 @@ public class UserServiceImpl implements UserService {
         User user = findById(userId);
 
         if (!passwordEncoder.matches(dto.old(), user.getPassword())) {
-            throw new BusinessException(ErrorCode.PASSWORD_NOT_MATCH);
+            throw new BusinessException(ErrorCode.OLD_PASSWORD_INCORRECT);
         }
 
         String encodedPassword = passwordEncoder.encode(dto.newPassword());
@@ -239,12 +239,12 @@ public class UserServiceImpl implements UserService {
     public void withdraw(Long userId, String rawPassword) {
         User user = findById(userId);
 
-        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
-            throw new BusinessException(ErrorCode.MISMATCHED_PASSWORD);
-        }
-
         if (user.getStatus() == UserStatus.WITHDRAWN) {
             throw new BusinessException(ErrorCode.ALREADY_WITHDRAWN_USER);
+        }
+
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new BusinessException(ErrorCode.MISMATCHED_PASSWORD);
         }
 
         user.withdraw();
