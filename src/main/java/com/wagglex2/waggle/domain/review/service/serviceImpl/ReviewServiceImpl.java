@@ -35,23 +35,23 @@ public class ReviewServiceImpl implements ReviewService {
      *   <li>생성된 Review 엔티티를 저장 후 식별자(ID) 반환</li>
      * </ol>
      *
-     * @param authorId 리뷰 작성자 ID
+     * @param reviewerId 리뷰 작성자 ID
      * @param dto 리뷰 생성 요청 DTO (리뷰 대상 사용자 ID, 내용)
      * @return 생성된 리뷰의 ID
      * @throws BusinessException 자기 자신에게 리뷰를 남기려는 경우 발생
      */
     @Override
     @Transactional
-    public Long createReview(Long authorId, ReviewCreationRequestDto dto) {
+    public Long createReview(Long reviewerId, ReviewCreationRequestDto dto) {
 
-        if (authorId.equals(dto.userTargetId())) {
+        if (reviewerId.equals(dto.revieweeId())) {
             throw new BusinessException(ErrorCode.SELF_REVIEW_NOT_ALLOWED);
         }
 
-        User author = userService.findById(authorId);
-        User target = userService.findById(dto.userTargetId());
+        User reviewer = userService.findById(reviewerId);
+        User reviewee = userService.findById(dto.revieweeId());
 
-        Review review = dto.toEntity(author, target, dto.content());
+        Review review = dto.toEntity(reviewer, reviewee, dto.content());
         return reviewRepository.save(review).getId();
     }
 }

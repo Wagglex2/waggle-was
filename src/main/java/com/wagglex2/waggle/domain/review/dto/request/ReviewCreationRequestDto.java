@@ -18,25 +18,25 @@ import jakarta.validation.constraints.Size;
  *
  * <p><b>검증 규칙:</b></p>
  * <ul>
- *   <li>{@code userTargetId} – 대상 사용자 ID는 반드시 존재해야 함</li>
+ *   <li>{@code revieweeId} – 대상 사용자 ID는 반드시 존재해야 함</li>
  *   <li>{@code content} – 후기 내용은 비어 있을 수 없으며 100자 이내로 제한</li>
  * </ul>
  *
- * @param userTargetId 후기 대상 사용자 ID
+ * @param revieweeId 후기 대상 사용자 ID
  * @param content 후기 내용
  */
 public record ReviewCreationRequestDto(
         @NotNull(message = "대상 유저 ID가 누락되었습니다.")
-        Long userTargetId,
+        Long revieweeId,
 
         @NotBlank(message = "후기 내용이 누락되었습니다.")
         @Size(max = 100, message = "내용은 100자 이내로 입력해주세요.")
         String content
 ) {
-    public Review toEntity(User author, User target, String content) {
+    public Review toEntity(User reviewer, User reviewee, String content) {
         return Review.builder()
-                .author(author)
-                .target(target)
+                .reviewer(reviewer)
+                .reviewee(reviewee)
                 .content(content)
                 .build();
     }

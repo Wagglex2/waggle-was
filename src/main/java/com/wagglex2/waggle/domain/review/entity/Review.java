@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  * <p><b>설명:</b></p>
  * <ul>
  *   <li>사용자 간 후기(리뷰) 정보를 저장하는 도메인 엔티티</li>
- *   <li>리뷰 작성자(author)와 리뷰 대상(target) 간의 다대일(ManyToOne) 관계를 가짐</li>
+ *   <li>리뷰 작성자(reviewer)와 리뷰 대상(reviewee) 간의 다대일(ManyToOne) 관계를 가짐</li>
  *   <li>작성일(createdAt), 수정일(updatedAt)은 JPA Auditing으로 자동 관리됨</li>
  * </ul>
  *
@@ -26,8 +26,8 @@ import java.time.LocalDateTime;
  * <ul>
  *   <li>테이블명: {@code reviews}</li>
  *   <li>기본키: {@code id}</li>
- *   <li>작성자 외래키: {@code author_id}</li>
- *   <li>대상자 외래키: {@code target_id}</li>
+ *   <li>작성자 외래키: {@code reviewer_id}</li>
+ *   <li>대상자 외래키: {@code reviewee_id}</li>
  * </ul>
  */
 
@@ -43,12 +43,12 @@ public class Review {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id", nullable = false)
-    private User author;
+    @JoinColumn(name = "reviewer_id", nullable = false)
+    private User reviewer;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "target_id", nullable = false)
-    private User target;
+    @JoinColumn(name = "reviewee_id", nullable = false)
+    private User reviewee;
 
     @Column(nullable = false, length = 100)
     private String content;
@@ -62,9 +62,9 @@ public class Review {
     private LocalDateTime updatedAt;
 
     @Builder
-    public Review(User author, User target, String content) {
-        this.author = author;
-        this.target = target;
+    public Review(User reviewer, User reviewee, String content) {
+        this.reviewer = reviewee;
+        this.reviewee = reviewee;
         this.content = content;
     }
 }
