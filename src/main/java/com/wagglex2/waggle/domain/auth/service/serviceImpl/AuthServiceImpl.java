@@ -15,7 +15,6 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -24,7 +23,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -153,10 +151,10 @@ public class AuthServiceImpl implements AuthService {
      * @param toEmail   인증번호를 받은 이메일
      * @param inputCode 사용자가 입력한 인증번호
      * @throws BusinessException <ul>
-     *                                                                 <li>{@link ErrorCode#INVALID_REQUEST} : 이메일 또는 인증번호가 누락됨</li>
-     *                                                                 <li>{@link ErrorCode#VERIFICATION_CODE_EXPIRED} : 인증번호가 존재하지 않거나 만료됨</li>
-     *                                                                 <li>{@link ErrorCode#INVALID_VERIFICATION_CODE} : 입력된 인증번호 불일치</li>
-     *                                                             </ul>
+     *                                                                                           <li>{@link ErrorCode#INVALID_REQUEST} : 이메일 또는 인증번호가 누락됨</li>
+     *                                                                                           <li>{@link ErrorCode#VERIFICATION_CODE_EXPIRED} : 인증번호가 존재하지 않거나 만료됨</li>
+     *                                                                                           <li>{@link ErrorCode#INVALID_VERIFICATION_CODE} : 입력된 인증번호 불일치</li>
+     *                                                                                       </ul>
      */
     @Override
     public void verifyCode(String toEmail, String inputCode) {
@@ -209,10 +207,10 @@ public class AuthServiceImpl implements AuthService {
      * @param dto 로그인 요청 DTO (username, password)
      * @return Access / Refresh Token 쌍
      * @throws BusinessException <ul>
-     *                                                       <li>{@link ErrorCode#INVALID_CREDENTIALS} : 잘못된 로그인 정보</li>
-     *                                                       <li>{@link ErrorCode#REDIS_CONNECTION_ERROR} : Redis 연결 실패</li>
-     *                                                       <li>{@link ErrorCode#INTERNAL_SERVER_ERROR} : 기타 서버 내부 오류</li>
-     *                                                     </ul>
+     *                                                                                 <li>{@link ErrorCode#INVALID_CREDENTIALS} : 잘못된 로그인 정보</li>
+     *                                                                                 <li>{@link ErrorCode#REDIS_CONNECTION_ERROR} : Redis 연결 실패</li>
+     *                                                                                 <li>{@link ErrorCode#INTERNAL_SERVER_ERROR} : 기타 서버 내부 오류</li>
+     *                                                                               </ul>
      */
     @Override
     public TokenPair login(SignInRequestDto dto) {
@@ -254,12 +252,6 @@ public class AuthServiceImpl implements AuthService {
         } catch (BadCredentialsException e) {
             log.warn("로그인 실패 - 잘못된 인증 정보 : {}", dto.username());
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
-        } catch (RedisConnectionException e) {
-            log.warn("Redis 연결 실패 : {}", e.getMessage());
-            throw new BusinessException(ErrorCode.REDIS_CONNECTION_ERROR);
-        } catch (Exception e) {
-            log.warn("로그인 처리 중 오류 발생 : {}", e.getMessage());
-            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -280,18 +272,10 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public void deleteRefreshToken(Long userId) {
-        try {
-            String redisKey = REFRESH_TOKEN_PREFIX + userId;
-            redisTemplate.delete(redisKey);
+        String redisKey = REFRESH_TOKEN_PREFIX + userId;
+        redisTemplate.delete(redisKey);
 
-            log.info("Refresh Token 삭제 완료 : {}", userId);
-        } catch (RedisConnectionException e) {
-            log.warn("Refresh Token 삭제 중 Redis 연결 실패 : {}", e.getMessage());
-            throw new BusinessException(ErrorCode.REDIS_CONNECTION_ERROR);
-        } catch (Exception e) {
-            log.warn("Refresh Token 삭제 중 오류 발생 : {}", e.getMessage());
-            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
-        }
+        log.info("Refresh Token 삭제 완료 : {}", userId);
     }
 
     /**
@@ -347,9 +331,6 @@ public class AuthServiceImpl implements AuthService {
 
             // 3. 사용자 존재 여부 확인
             User user = userService.findById(userId);
-            if (user == null) {
-                throw new BusinessException(ErrorCode.USER_NOT_FOUND);
-            }
 
             // 4. 새로운 Access Token 및 Refresh Token 발급
             String newAccessToken = jwtUtil.createAccessToken(

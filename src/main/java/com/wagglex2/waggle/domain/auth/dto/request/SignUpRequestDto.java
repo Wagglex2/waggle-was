@@ -20,8 +20,8 @@ public record SignUpRequestDto(
         String username,
 
         @NotBlank(message = "비밀번호가 누락되었습니다.")
-        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()_+~])[A-Za-z\\d!@#$%^&*()_+~]{8,}$",
-                message = "비밀번호는 8자 이상의 영문, 숫자, 특수문자를 포함해야 합니다.")
+        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()_+~])[A-Za-z\\d!@#$%^&*()_+~]{8,72}$",
+                message = "비밀번호는 8자 이상 72자 이내의 영문, 숫자, 특수문자를 포함해야 합니다.")
         String password,
 
         @NotBlank(message = "비밀번호 확인이 누락되었습니다.")
