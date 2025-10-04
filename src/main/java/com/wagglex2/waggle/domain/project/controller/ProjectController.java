@@ -4,7 +4,7 @@ import com.wagglex2.waggle.common.response.ApiResponse;
 import com.wagglex2.waggle.common.security.CustomUserDetails;
 import com.wagglex2.waggle.domain.project.dto.request.ProjectCreationRequestDto;
 import com.wagglex2.waggle.domain.project.dto.request.ProjectUpdateRequestDto;
-import com.wagglex2.waggle.domain.project.dto.response.ProjectResponseDto;
+import com.wagglex2.waggle.domain.project.dto.response.ProjectDetailResponseDto;
 import com.wagglex2.waggle.domain.project.service.ProjectService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,8 +33,8 @@ public class ProjectController {
 
     @GetMapping("/{projectId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<ProjectResponseDto>> getProject(@PathVariable Long projectId) {
-        ProjectResponseDto responseDto = projectService.getProject(projectId);
+    public ResponseEntity<ApiResponse<ProjectDetailResponseDto>> getProject(@PathVariable Long projectId) {
+        ProjectDetailResponseDto responseDto = projectService.getProject(projectId);
 
         return ResponseEntity.ok(
                 ApiResponse.ok("프로젝트 공고를 성공적으로 조회하였습니다.", responseDto)
