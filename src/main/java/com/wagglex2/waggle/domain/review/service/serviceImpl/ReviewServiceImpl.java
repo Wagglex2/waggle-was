@@ -77,7 +77,7 @@ public class ReviewServiceImpl implements ReviewService {
      * @return 리뷰 목록이 담긴 Page 객체 (ReviewResponseDto 형태)
      */
     @Override
-    public Page<ReviewResponseDto> getReviews(Long revieweeId, int pageNo) {
+    public Page<ReviewResponseDto> getReviewsByRevieweeId(Long revieweeId, int pageNo) {
         Pageable pageable = PageRequest.of(
                 pageNo,
                 DEFAULT_PAGE_SIZE,
@@ -85,6 +85,32 @@ public class ReviewServiceImpl implements ReviewService {
         );
 
         return reviewRepository.findByRevieweeId(revieweeId, pageable)
+                .map(ReviewResponseDto::from);
+    }
+
+    /**
+     * 특정 사용자가 쓴 리뷰 목록을 페이지네이션 방식으로 조회한다.
+     *
+     * <p><b>처리 흐름:</b></p>
+     * <ol>
+     *   <li>pageNo(요청 페이지 번호), DEFAULT_PAGE_SIZE(고정 페이지 크기), createdAt 기준 내림차순 정렬을 설정</li>
+     *   <li>reviewerId(리뷰 작성 사용자 ID)에 해당하는 리뷰를 Page 단위로 조회</li>
+     *   <li>조회된 Review 엔티티를 ReviewResponseDto로 변환하여 반환</li>
+     * </ol>
+     *
+     * @param reviewerId 리뷰 작성 사용자의 ID
+     * @param pageNo     조회할 페이지 번호 (0부터 시작)
+     * @return 리뷰 목록이 담긴 Page 객체 (ReviewResponseDto 형태)
+     */
+    @Override
+    public Page<ReviewResponseDto> getReviewsByReviewerId(Long reviewerId, int pageNo) {
+        Pageable pageable = PageRequest.of(
+                pageNo,
+                DEFAULT_PAGE_SIZE,
+                Sort.by("createdAt").descending()
+        );
+
+        return reviewRepository.findByReviewerId(reviewerId, pageable)
                 .map(ReviewResponseDto::from);
     }
 }

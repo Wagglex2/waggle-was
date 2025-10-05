@@ -53,14 +53,14 @@ public class ReviewController {
     }
 
     /**
-     * 로그인한 사용자가 받은 리뷰 목록을 조회한다.
+     * 로그인한 사용자가 작성한 리뷰 목록을 조회한다.
      *
      * <p><b>처리 흐름:</b></p>
      * <ol>
-     *   <li>요청한 페이지 번호(pageNo)가 1 미만인 경우 <code>BusinessException</code> 발생</li>
-     *   <li>로그인한 사용자 ID를 가져와(revieweeId) <code>reviewService.getReviews()</code> 호출</li>
-     *   <li>서비스 단에서는 0 기반 페이지 번호를 사용하므로 <code>pageNo - 1</code> 전달</li>
-     *   <li>조회 결과(Page<ReviewResponseDto>)를 <code>ApiResponse</code> 형태로 감싸서 응답</li>
+     *   <li>요청한 페이지 번호(pageNo)가 1 미만인 경우 {@code BusinessException} 발생</li>
+     *   <li>로그인한 사용자 ID를 가져와(reviewerId) {@code reviewService.getReviewsByReviewerId()} 호출</li>
+     *   <li>서비스 단에서는 0 기반 페이지 번호를 사용하므로 {@code pageNo - 1} 전달</li>
+     *   <li>조회 결과(Page<ReviewResponseDto>)를 {@code ApiResponse} 형태로 감싸서 응답</li>
      * </ol>
      *
      * @param userDetails 현재 인증된 사용자 정보
@@ -68,9 +68,9 @@ public class ReviewController {
      * @return 리뷰 목록(Page<ReviewResponseDto>)을 포함한 200 OK 응답
      * @throws BusinessException pageNo가 1 미만일 경우 INVALID_PAGE_NUMBER 예외 발생
      */
-    @GetMapping("/me")
+    @GetMapping("/me/written")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<Page<ReviewResponseDto>>> getMyReviews(
+    public ResponseEntity<ApiResponse<Page<ReviewResponseDto>>> getMyWrittenReviews(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(value = "page", required = false, defaultValue = "1") int pageNo
     ) {
@@ -78,9 +78,47 @@ public class ReviewController {
             throw new BusinessException(ErrorCode.INVALID_PAGE_NUMBER);
         }
 
-        Page<ReviewResponseDto> data = reviewService.getReviews(userDetails.getUserId(), pageNo - 1);
+        Page<ReviewResponseDto> data = reviewService.getReviewsByReviewerId(
+                userDetails.getUserId(),
+                pageNo - 1
+        );
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(ApiResponse.ok("리뷰 조회에 성공했습니다.", data));
+                .body(ApiResponse.ok("내가 작성한 리뷰 조회에 성공했습니다.", data));
+    }
+
+    /**
+     * 로그인한 사용자가 받은 리뷰 목록을 조회한다.
+     *
+     * <p><b>처리 흐름:</b></p>
+     * <ol>
+     *   <li>요청한 페이지 번호(pageNo)가 1 미만인 경우 {@code BusinessException} 발생</li>
+     *   <li>로그인한 사용자 ID를 가져와(revieweeId) {@code reviewService.getReviewsByRevieweeId()} 호출</li>
+     *   <li>서비스 단에서는 0 기반 페이지 번호를 사용하므로 {@code pageNo - 1} 전달</li>
+     *   <li>조회 결과(Page<ReviewResponseDto>)를 {@code ApiResponse} 형태로 감싸서 응답</li>
+     * </ol>
+     *
+     * @param userDetails 현재 인증된 사용자 정보
+     * @param pageNo      요청 페이지 번호 (1부터 시작, 기본값 1)
+     * @return 리뷰 목록(Page<ReviewResponseDto>)을 포함한 200 OK 응답
+     * @throws BusinessException pageNo가 1 미만일 경우 INVALID_PAGE_NUMBER 예외 발생
+     */
+    @GetMapping("/me/received")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Page<ReviewResponseDto>>> getMyReceivedReviews(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(value = "page", required = false, defaultValue = "1") int pageNo
+    ) {
+        if (pageNo < 1) {
+            throw new BusinessException(ErrorCode.INVALID_PAGE_NUMBER);
+        }
+
+        Page<ReviewResponseDto> data = reviewService.getReviewsByRevieweeId(
+                userDetails.getUserId(),
+                pageNo - 1
+        );
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.ok("내가 받은 리뷰 조회에 성공했습니다.", data));
     }
 }

@@ -236,7 +236,7 @@ public class UserController {
      * @return        리뷰 목록(Page<ReviewResponseDto>)을 포함한 200 OK 응답
      * @throws BusinessException 사용자 미존재 또는 잘못된 페이지 번호일 경우 발생
      */
-    @GetMapping("/{userId}/reviews")
+    @GetMapping("/{userId}/reviews/received")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<Page<ReviewResponseDto>>> getReviews(
             @PathVariable(name = "userId") Long userId,
@@ -250,7 +250,7 @@ public class UserController {
             throw new BusinessException(ErrorCode.INVALID_PAGE_NUMBER);
         }
 
-        Page<ReviewResponseDto> data = reviewService.getReviews(userId, pageNo - 1);
+        Page<ReviewResponseDto> data = reviewService.getReviewsByRevieweeId(userId, pageNo - 1);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.ok("리뷰 조회에 성공했습니다.", data));

@@ -6,5 +6,6 @@ import org.springframework.data.domain.Page;
 
 public interface ReviewService {
     Long createReview(Long reviewerId, ReviewCreationRequestDto dto);
-    Page<ReviewResponseDto> getReviews(Long revieweeId, int pageNo);
+    Page<ReviewResponseDto> getReviewsByRevieweeId(Long revieweeId, int pageNo);
+    Page<ReviewResponseDto> getReviewsByReviewerId(Long reviewerId, int pageNo);
 }
