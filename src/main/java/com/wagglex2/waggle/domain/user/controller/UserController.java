@@ -1,7 +1,11 @@
 package com.wagglex2.waggle.domain.user.controller;
 
+import com.wagglex2.waggle.common.error.ErrorCode;
+import com.wagglex2.waggle.common.exception.BusinessException;
 import com.wagglex2.waggle.common.response.ApiResponse;
 import com.wagglex2.waggle.common.security.CustomUserDetails;
+import com.wagglex2.waggle.domain.review.dto.response.ReviewResponseDto;
+import com.wagglex2.waggle.domain.review.service.ReviewService;
 import com.wagglex2.waggle.domain.user.dto.request.PasswordRequestDto;
 import com.wagglex2.waggle.domain.user.dto.request.UserUpdateRequestDto;
 import com.wagglex2.waggle.domain.user.dto.request.WithdrawRequestDto;
@@ -14,6 +18,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +37,7 @@ public class UserController {
     private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
 
     private final UserService userService;
+    private final ReviewService reviewService;
 
     /**
      * 아이디 중복 여부를 검사한다.
@@ -193,7 +199,6 @@ public class UserController {
      *   <li>탈퇴 성공 메시지를 포함한 200 OK 응답 반환</li>
      * </ol>
      *
-     *
      * @param userDetails 인증된 사용자 정보 (Spring Security Principal)
      * @param dto         탈퇴 요청 DTO (비밀번호 포함)
      * @param response    HTTP 응답 객체 (쿠키 만료 처리용)
@@ -212,6 +217,43 @@ public class UserController {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.ok("회원탈퇴에 성공했습니다."));
+    }
+
+    /**
+     * 특정 사용자가 받은 리뷰 목록을 조회한다.
+     *
+     * <p><b>처리 흐름:</b></p>
+     * <ol>
+     *   <li>요청 경로의 userId로 대상 사용자 존재 여부 확인 → 없으면 {@link BusinessException} 발생</li>
+     *   <li>요청한 pageNo가 1 미만이면 {@link BusinessException} 발생</li>
+     *   <li>페이지 번호는 JPA의 PageRequest 기준(0부터 시작)이므로 <code>pageNo - 1</code>로 조정</li>
+     *   <li>서비스 계층에서 해당 사용자의 리뷰를 조회하고 DTO로 변환</li>
+     *   <li>성공 시 {@link ApiResponse} 형태로 200 OK 응답 반환</li>
+     * </ol>
+     *
+     * @param userId  리뷰 대상 사용자의 ID (경로 변수)
+     * @param pageNo  요청한 페이지 번호 (1부터 시작, 기본값 1)
+     * @return        리뷰 목록(Page<ReviewResponseDto>)을 포함한 200 OK 응답
+     * @throws BusinessException 사용자 미존재 또는 잘못된 페이지 번호일 경우 발생
+     */
+    @GetMapping("/{userId}/reviews")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Page<ReviewResponseDto>>> getReviews(
+            @PathVariable(name = "userId") Long userId,
+            @RequestParam(value = "page", required = false, defaultValue = "1") int pageNo
+    ) {
+        if (!userService.existsById(userId)) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        if (pageNo < 1) {
+            throw new BusinessException(ErrorCode.INVALID_PAGE_NUMBER);
+        }
+
+        Page<ReviewResponseDto> data = reviewService.getReviews(userId, pageNo - 1);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.ok("리뷰 조회에 성공했습니다.", data));
     }
 
     /**
