@@ -38,7 +38,9 @@ public class AssignmentServiceImpl implements AssignmentService {
             throw new BusinessException(ErrorCode.ASSIGNMENT_NOT_FOUND);
         }
 
-        return assignmentRepository.findById(assignmentId)
-                .map(AssignmentResponseDto::fromEntity).get();
+        Assignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ASSIGNMENT_NOT_FOUND));
+
+        return AssignmentResponseDto.fromEntity(assignment);
     }
 }
