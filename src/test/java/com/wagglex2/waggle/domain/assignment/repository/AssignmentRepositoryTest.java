@@ -63,7 +63,7 @@ class AssignmentRepositoryTest {
     }
 
     @Test
-    @DisplayName("Assignment id로 조회 성공")
+    @DisplayName("과제 id로 조회 성공")
     void findById() {
         // given
         Assignment assignment = createAssignment();
@@ -75,6 +75,22 @@ class AssignmentRepositoryTest {
         // then
         assertThat(found).isNotEmpty();
         assertThat(found.get().getLecture()).isEqualTo("데이터베이스");
+    }
+
+    @Test
+    @DisplayName("조회수 증가 쿼리가 정상적으로 반영되어야 한다.")
+    void increaseViewCount() {
+        // given
+        Assignment assignment = createAssignment();
+        assignmentRepository.save(assignment);
+
+        //when
+        assignmentRepository.increaseViewCount(assignment.getId());
+        assignmentRepository.increaseViewCount(assignment.getId());
+
+        // then
+        Assignment updated = assignmentRepository.findById(assignment.getId()).get();
+        assertThat(updated.getViewCount()).isEqualTo(2);
     }
 
     private Assignment createAssignment() {
