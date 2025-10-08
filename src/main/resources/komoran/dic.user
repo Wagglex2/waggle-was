@@ -1,0 +1,13 @@
+# 사용자 정의 사전
+# [단어] [\t] [품사]
+1학년	NNG
+2학년	NNG
+3학년	NNG
+4학년	NNG
+프론트엔드	NNG
+백엔드	NNG
+풀스택	NNG
+C++	NNP
+c++	NNP
+C#	NNP
+c#	NNP
