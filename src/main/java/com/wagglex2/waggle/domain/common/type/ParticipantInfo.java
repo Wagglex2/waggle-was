@@ -3,10 +3,7 @@ package com.wagglex2.waggle.domain.common.type;
 import com.wagglex2.waggle.domain.common.dto.request.PositionInfoCreationRequestDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 
 /**
@@ -25,6 +22,7 @@ import lombok.NoArgsConstructor;
  */
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EqualsAndHashCode
 @Getter
 @Embeddable
 public class ParticipantInfo {

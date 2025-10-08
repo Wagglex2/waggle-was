@@ -23,6 +23,7 @@ import lombok.*;
  */
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
+@EqualsAndHashCode
 @Getter
 @Embeddable
 public class PositionParticipantInfo {
