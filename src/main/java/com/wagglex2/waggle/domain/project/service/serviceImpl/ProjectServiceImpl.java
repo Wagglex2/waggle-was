@@ -51,7 +51,8 @@ public class ProjectServiceImpl implements ProjectService {
         // 각 collection 정보는 추가 쿼리로 조회 후 dto에 추가
         // Project 정보와 User 정보
         ProjectResponseDto responseDto = projectRepository.findByIdWithUser(projectId)
-                .map(ProjectResponseDto::fromEntity).get();
+                .map(ProjectResponseDto::fromEntity)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
 
         // Position 정보
         Set<PositionInfoResponseDto> positions = projectRepository.findPositionsByProjectId(projectId).stream()
