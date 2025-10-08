@@ -63,7 +63,7 @@ public class Review {
 
     @Builder
     public Review(User reviewer, User reviewee, String content) {
-        this.reviewer = reviewee;
+        this.reviewer = reviewer;
         this.reviewee = reviewee;
         this.content = content;
     }

@@ -2,19 +2,22 @@ package com.wagglex2.waggle.domain.review.controller;
 
 import com.wagglex2.waggle.common.response.ApiResponse;
 import com.wagglex2.waggle.common.security.CustomUserDetails;
+import com.wagglex2.waggle.domain.common.dto.response.PageResponse;
 import com.wagglex2.waggle.domain.review.dto.request.ReviewCreationRequestDto;
+import com.wagglex2.waggle.domain.review.dto.response.ReviewResponseDto;
 import com.wagglex2.waggle.domain.review.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/reviews")
@@ -49,5 +52,87 @@ public class ReviewController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.ok("리뷰 작성에 성공했습니다.", reviewId));
+    }
+
+    /**
+     * 로그인한 사용자가 <b>작성한 리뷰 목록</b>을 페이지네이션 방식으로 조회한다.
+     *
+     * <p><b>처리 흐름:</b></p>
+     * <ol>
+     *   <li>Spring MVC가 요청 파라미터({@code page}, {@code size}, {@code sort})를 {@link Pageable} 객체로 자동 변환한다.</li>
+     *   <li>인증된 사용자 정보에서 작성자 ID({@code reviewerId})를 추출한다.</li>
+     *   <li>{@code reviewService.getReviewsByReviewerId()} 호출 시 {@link Pageable}을 전달하여 조회를 수행한다.</li>
+     *   <li>서비스 계층에서 조회 결과를 {@link PageResponse}<{@link ReviewResponseDto}> 형태로 변환하여 반환한다.</li>
+     *   <li>컨트롤러는 이를 {@link ApiResponse}로 감싸 200 OK 응답을 반환한다.</li>
+     * </ol>
+     *
+     * <p><b>요청 파라미터 예시:</b></p>
+     * <ul>
+     *   <li>{@code GET /me/written?page=0&size=5&sort=createdAt,desc}</li>
+     *   <li>페이지 번호는 0부터 시작 (Spring Data JPA의 기본 규칙)</li>
+     * </ul>
+     *
+     * @param userDetails 현재 인증된 사용자 정보
+     * @param pageable    페이지 정보 (기본값: size=5, sort=createdAt, direction=DESC)
+     * @return 내가 작성한 리뷰 목록을 포함한 {@link ApiResponse} (200 OK)
+     */
+    @GetMapping("/me/written")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<PageResponse<ReviewResponseDto>>> getMyWrittenReviews(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PageableDefault(
+                    size = 5,
+                    sort = "createdAt",
+                    direction = Sort.Direction.DESC
+            ) Pageable pageable
+    ) {
+        PageResponse<ReviewResponseDto> data = reviewService.getReviewsByReviewerId(
+                userDetails.getUserId(),
+                pageable
+        );
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.ok("내가 작성한 리뷰 조회에 성공했습니다.", data));
+    }
+
+    /**
+     * 로그인한 사용자가 <b>받은 리뷰 목록</b>을 페이지네이션 방식으로 조회한다.
+     *
+     * <p><b>처리 흐름:</b></p>
+     * <ol>
+     *   <li>Spring MVC가 요청 파라미터({@code page}, {@code size}, {@code sort})를 {@link Pageable} 객체로 자동 변환한다.</li>
+     *   <li>인증 정보에서 리뷰 대상 사용자 ID({@code revieweeId})를 추출한다.</li>
+     *   <li>{@code reviewService.getReviewsByRevieweeId()} 호출 시 {@link Pageable}을 전달하여 조회를 수행한다.</li>
+     *   <li>서비스 계층에서 조회 결과를 {@link PageResponse}<{@link ReviewResponseDto}> 형태로 변환하여 반환한다.</li>
+     *   <li>컨트롤러는 이를 {@link ApiResponse}로 감싸 200 OK 응답을 반환한다.</li>
+     * </ol>
+     *
+     * <p><b>요청 파라미터 예시:</b></p>
+     * <ul>
+     *   <li>{@code GET /me/received?page=0&size=5&sort=createdAt,desc}</li>
+     *   <li>페이지 번호는 0부터 시작 (Spring Data JPA의 기본 규칙)</li>
+     * </ul>
+     *
+     * @param userDetails 현재 인증된 사용자 정보
+     * @param pageable    페이지 정보 (기본값: size=5, sort=createdAt, direction=DESC)
+     * @return 받은 리뷰 목록을 포함한 {@link ApiResponse} (200 OK)
+     */
+    @GetMapping("/me/received")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<PageResponse<ReviewResponseDto>>> getMyReceivedReviews(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PageableDefault(
+                    size = 5,
+                    sort = "createdAt",
+                    direction = Sort.Direction.DESC
+            ) Pageable pageable
+    ) {
+        PageResponse<ReviewResponseDto> data = reviewService.getReviewsByRevieweeId(
+                userDetails.getUserId(),
+                pageable
+        );
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.ok("내가 받은 리뷰 조회에 성공했습니다.", data));
     }
 }
