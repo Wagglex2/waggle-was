@@ -228,17 +228,17 @@ public class UserController {
      *
      * <p><b>처리 흐름:</b></p>
      * <ol>
-     *   <li>요청 경로의 {@code userId}로 대상 사용자 존재 여부 확인 → 존재하지 않으면 {@link BusinessException} 발생</li>
-     *   <li>Spring MVC가 요청 파라미터({@code page}, {@code size}, {@code sort})를 {@link Pageable} 객체로 자동 변환</li>
-     *   <li>{@code reviewService.getReviewsByRevieweeId()} 호출 시 {@link Pageable}을 그대로 전달하여 페이징 조회 수행</li>
-     *   <li>조회 결과({@link Page}<{@link ReviewResponseDto}>)를 {@link PageResponse} 형태로 변환</li>
-     *   <li>최종적으로 {@link ApiResponse}로 감싸 200 OK 응답을 반환</li>
+     *   <li>요청 경로의 {@code userId}로 대상 사용자 존재 여부를 확인한다. 존재하지 않을 경우 {@link BusinessException} 발생.</li>
+     *   <li>Spring MVC가 요청 파라미터({@code page}, {@code size}, {@code sort})를 {@link Pageable} 객체로 자동 변환한다.</li>
+     *   <li>{@code reviewService.getReviewsByRevieweeId()}를 호출해 해당 사용자가 받은 리뷰를 조회한다.</li>
+     *   <li>서비스 계층에서 조회 결과를 {@link PageResponse}<{@link ReviewResponseDto}> 형태로 변환하여 반환한다.</li>
+     *   <li>컨트롤러는 이를 {@link ApiResponse}로 감싸 200 OK 응답을 반환한다.</li>
      * </ol>
      *
      * <p><b>요청 파라미터 예시:</b></p>
      * <ul>
      *   <li>{@code GET /users/3/reviews/received?page=0&size=5&sort=createdAt,desc}</li>
-     *   <li>페이지 번호는 0부터 시작 (Spring Data JPA 기본 규칙)</li>
+     *   <li>페이지 번호는 0부터 시작 (Spring Data JPA의 기본 규칙)</li>
      * </ul>
      *
      * @param userId   리뷰 대상 사용자의 고유 ID (경로 변수)
@@ -260,9 +260,7 @@ public class UserController {
             throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
 
-        Page<ReviewResponseDto> page = reviewService.getReviewsByRevieweeId(userId, pageable);
-
-        PageResponse<ReviewResponseDto> data = PageResponse.from(page);
+        PageResponse<ReviewResponseDto> data = reviewService.getReviewsByRevieweeId(userId, pageable);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.ok("리뷰 조회에 성공했습니다.", data));

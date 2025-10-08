@@ -55,15 +55,15 @@ public class ReviewController {
     }
 
     /**
-     * 로그인한 사용자가 작성한 리뷰 목록을 페이지네이션 방식으로 조회한다.
+     * 로그인한 사용자가 <b>작성한 리뷰 목록</b>을 페이지네이션 방식으로 조회한다.
      *
      * <p><b>처리 흐름:</b></p>
      * <ol>
-     *   <li>Spring MVC가 요청 파라미터({@code page}, {@code size}, {@code sort})를 자동으로 {@link Pageable} 객체로 변환한다.</li>
+     *   <li>Spring MVC가 요청 파라미터({@code page}, {@code size}, {@code sort})를 {@link Pageable} 객체로 자동 변환한다.</li>
      *   <li>인증된 사용자 정보에서 작성자 ID({@code reviewerId})를 추출한다.</li>
-     *   <li>{@code reviewService.getReviewsByReviewerId()} 호출 시 {@link Pageable}을 그대로 전달한다.</li>
-     *   <li>조회 결과({@link Page}<{@link ReviewResponseDto}>)를 {@link PageResponse}로 변환한다.</li>
-     *   <li>최종적으로 {@link ApiResponse} 형태로 감싸 200 OK 응답을 반환한다.</li>
+     *   <li>{@code reviewService.getReviewsByReviewerId()} 호출 시 {@link Pageable}을 전달하여 조회를 수행한다.</li>
+     *   <li>서비스 계층에서 조회 결과를 {@link PageResponse}<{@link ReviewResponseDto}> 형태로 변환하여 반환한다.</li>
+     *   <li>컨트롤러는 이를 {@link ApiResponse}로 감싸 200 OK 응답을 반환한다.</li>
      * </ol>
      *
      * <p><b>요청 파라미터 예시:</b></p>
@@ -72,9 +72,9 @@ public class ReviewController {
      *   <li>페이지 번호는 0부터 시작 (Spring Data JPA의 기본 규칙)</li>
      * </ul>
      *
-     * @param userDetails 인증된 사용자 정보
+     * @param userDetails 현재 인증된 사용자 정보
      * @param pageable    페이지 정보 (기본값: size=5, sort=createdAt, direction=DESC)
-     * @return 리뷰 목록을 포함한 200 OK 응답
+     * @return 내가 작성한 리뷰 목록을 포함한 {@link ApiResponse} (200 OK)
      */
     @GetMapping("/me/written")
     @PreAuthorize("isAuthenticated()")
@@ -86,12 +86,10 @@ public class ReviewController {
                     direction = Sort.Direction.DESC
             ) Pageable pageable
     ) {
-        Page<ReviewResponseDto> page = reviewService.getReviewsByReviewerId(
+        PageResponse<ReviewResponseDto> data = reviewService.getReviewsByReviewerId(
                 userDetails.getUserId(),
                 pageable
         );
-
-        PageResponse<ReviewResponseDto> data = PageResponse.from(page);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.ok("내가 작성한 리뷰 조회에 성공했습니다.", data));
@@ -102,22 +100,22 @@ public class ReviewController {
      *
      * <p><b>처리 흐름:</b></p>
      * <ol>
-     *   <li>Spring MVC가 요청 파라미터({@code page}, {@code size}, {@code sort})를 자동으로 {@link Pageable} 객체로 변환한다.</li>
+     *   <li>Spring MVC가 요청 파라미터({@code page}, {@code size}, {@code sort})를 {@link Pageable} 객체로 자동 변환한다.</li>
      *   <li>인증 정보에서 리뷰 대상 사용자 ID({@code revieweeId})를 추출한다.</li>
-     *   <li>{@code reviewService.getReviewsByRevieweeId()} 호출 시 {@link Pageable}을 그대로 전달한다.</li>
-     *   <li>조회 결과({@link Page}<{@link ReviewResponseDto}>)를 {@link PageResponse}로 변환한다.</li>
-     *   <li>최종적으로 {@link ApiResponse} 형태로 감싸 200 OK 응답을 반환한다.</li>
+     *   <li>{@code reviewService.getReviewsByRevieweeId()} 호출 시 {@link Pageable}을 전달하여 조회를 수행한다.</li>
+     *   <li>서비스 계층에서 조회 결과를 {@link PageResponse}<{@link ReviewResponseDto}> 형태로 변환하여 반환한다.</li>
+     *   <li>컨트롤러는 이를 {@link ApiResponse}로 감싸 200 OK 응답을 반환한다.</li>
      * </ol>
      *
      * <p><b>요청 파라미터 예시:</b></p>
      * <ul>
      *   <li>{@code GET /me/received?page=0&size=5&sort=createdAt,desc}</li>
-     *   <li>페이지 번호는 0부터 시작 (Spring Data JPA 기본 규칙)</li>
+     *   <li>페이지 번호는 0부터 시작 (Spring Data JPA의 기본 규칙)</li>
      * </ul>
      *
      * @param userDetails 현재 인증된 사용자 정보
      * @param pageable    페이지 정보 (기본값: size=5, sort=createdAt, direction=DESC)
-     * @return 받은 리뷰 목록을 포함한 200 OK 응답
+     * @return 받은 리뷰 목록을 포함한 {@link ApiResponse} (200 OK)
      */
     @GetMapping("/me/received")
     @PreAuthorize("isAuthenticated()")
@@ -129,12 +127,10 @@ public class ReviewController {
                     direction = Sort.Direction.DESC
             ) Pageable pageable
     ) {
-        Page<ReviewResponseDto> page = reviewService.getReviewsByRevieweeId(
+        PageResponse<ReviewResponseDto> data = reviewService.getReviewsByRevieweeId(
                 userDetails.getUserId(),
                 pageable
         );
-
-        PageResponse<ReviewResponseDto> data = PageResponse.from(page);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.ok("내가 받은 리뷰 조회에 성공했습니다.", data));

@@ -2,6 +2,7 @@ package com.wagglex2.waggle.domain.review.service.serviceImpl;
 
 import com.wagglex2.waggle.common.error.ErrorCode;
 import com.wagglex2.waggle.common.exception.BusinessException;
+import com.wagglex2.waggle.domain.common.dto.response.PageResponse;
 import com.wagglex2.waggle.domain.review.dto.request.ReviewCreationRequestDto;
 import com.wagglex2.waggle.domain.review.dto.response.ReviewResponseDto;
 import com.wagglex2.waggle.domain.review.entity.Review;
@@ -59,42 +60,48 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     /**
-     * 특정 사용자가 받은 리뷰 목록을 {@link Pageable} 조건에 따라 페이지네이션 조회한다.
+     * 특정 사용자가 <b>받은 리뷰 목록</b>을 {@link Pageable} 조건에 따라 페이지네이션 방식으로 조회한다.
      *
      * <p><b>처리 흐름:</b></p>
      * <ol>
-     *   <li>컨트롤러에서 전달받은 {@link Pageable} 객체를 기반으로 페이징 및 정렬 조건을 설정</li>
-     *   <li>{@code revieweeId}에 해당하는 리뷰를 {@link ReviewRepository#findByRevieweeId(Long, Pageable)}로 조회</li>
-     *   <li>조회된 {@link Review} 엔티티를 {@link ReviewResponseDto}로 변환하여 반환</li>
+     *   <li>컨트롤러에서 전달된 {@link Pageable} 객체를 기반으로 페이징 및 정렬 조건을 설정한다.</li>
+     *   <li>{@code revieweeId}에 해당하는 리뷰를 {@link ReviewRepository#findByRevieweeId(Long, Pageable)}로 조회한다.</li>
+     *   <li>조회된 {@link Review} 엔티티를 {@link ReviewResponseDto}로 변환한다.</li>
+     *   <li>변환된 결과({@link Page}<{@link ReviewResponseDto}>)를 {@link PageResponse} 형태로 감싸 반환한다.</li>
      * </ol>
      *
      * @param revieweeId 리뷰 대상 사용자의 고유 ID
-     * @param pageable   페이징 및 정렬 정보
-     * @return {@link ReviewResponseDto}를 요소로 가지는 {@link Page} 객체
+     * @param pageable   페이징 및 정렬 정보 (page, size, sort 등)
+     * @return 페이지 정보와 함께 {@link ReviewResponseDto} 목록을 담은 {@link PageResponse} 객체
      */
     @Override
-    public Page<ReviewResponseDto> getReviewsByRevieweeId(Long revieweeId, Pageable pageable) {
-        return reviewRepository.findByRevieweeId(revieweeId, pageable)
+    public PageResponse<ReviewResponseDto> getReviewsByRevieweeId(Long revieweeId, Pageable pageable) {
+        Page<ReviewResponseDto> page = reviewRepository.findByRevieweeId(revieweeId, pageable)
                 .map(ReviewResponseDto::from);
+
+        return PageResponse.from(page);
     }
 
     /**
-     * 특정 사용자가 <b>작성한 리뷰 목록</b>을 {@link Pageable} 조건에 따라 페이지네이션 조회한다.
+     * 특정 사용자가 <b>작성한 리뷰 목록</b>을 {@link Pageable} 조건에 따라 페이지네이션 방식으로 조회한다.
      *
      * <p><b>처리 흐름:</b></p>
      * <ol>
-     *   <li>컨트롤러로부터 전달받은 {@link Pageable} 객체를 통해 페이징 및 정렬 조건을 설정</li>
-     *   <li>{@code reviewerId}에 해당하는 리뷰를 {@link ReviewRepository#findByReviewerId(Long, Pageable)}로 조회</li>
-     *   <li>조회된 {@link Review} 엔티티를 {@link ReviewResponseDto}로 변환하여 반환</li>
+     *   <li>컨트롤러에서 전달된 {@link Pageable} 객체를 기반으로 페이징 및 정렬 조건을 설정한다.</li>
+     *   <li>{@code reviewerId}에 해당하는 리뷰를 {@link ReviewRepository#findByReviewerId(Long, Pageable)}로 조회한다.</li>
+     *   <li>조회된 {@link Review} 엔티티를 {@link ReviewResponseDto}로 변환한다.</li>
+     *   <li>변환된 결과({@link Page}<{@link ReviewResponseDto}>)를 {@link PageResponse} 형태로 감싸 반환한다.</li>
      * </ol>
      *
      * @param reviewerId 리뷰 작성 사용자의 고유 ID
-     * @param pageable   페이징 및 정렬 정보
-     * @return {@link ReviewResponseDto}를 요소로 가지는 {@link Page} 객체
+     * @param pageable   페이징 및 정렬 정보 (page, size, sort 등)
+     * @return 페이지 정보와 함께 {@link ReviewResponseDto} 목록을 담은 {@link PageResponse} 객체
      */
     @Override
-    public Page<ReviewResponseDto> getReviewsByReviewerId(Long reviewerId, Pageable pageable) {
-        return reviewRepository.findByReviewerId(reviewerId, pageable)
+    public PageResponse<ReviewResponseDto> getReviewsByReviewerId(Long reviewerId, Pageable pageable) {
+        Page<ReviewResponseDto> page = reviewRepository.findByReviewerId(reviewerId, pageable)
                 .map(ReviewResponseDto::from);
+
+        return PageResponse.from(page);
     }
 }
