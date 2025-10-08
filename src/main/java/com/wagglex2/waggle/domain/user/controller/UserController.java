@@ -4,6 +4,7 @@ import com.wagglex2.waggle.common.error.ErrorCode;
 import com.wagglex2.waggle.common.exception.BusinessException;
 import com.wagglex2.waggle.common.response.ApiResponse;
 import com.wagglex2.waggle.common.security.CustomUserDetails;
+import com.wagglex2.waggle.domain.common.dto.response.PageResponse;
 import com.wagglex2.waggle.domain.review.dto.response.ReviewResponseDto;
 import com.wagglex2.waggle.domain.review.service.ReviewService;
 import com.wagglex2.waggle.domain.user.dto.request.PasswordRequestDto;
@@ -19,6 +20,9 @@ import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -220,37 +224,45 @@ public class UserController {
     }
 
     /**
-     * 특정 사용자가 받은 리뷰 목록을 조회한다.
+     * 특정 사용자가 <b>받은 리뷰 목록</b>을 페이지네이션 방식으로 조회한다.
      *
      * <p><b>처리 흐름:</b></p>
      * <ol>
-     *   <li>요청 경로의 userId로 대상 사용자 존재 여부 확인 → 없으면 {@link BusinessException} 발생</li>
-     *   <li>요청한 pageNo가 1 미만이면 {@link BusinessException} 발생</li>
-     *   <li>페이지 번호는 JPA의 PageRequest 기준(0부터 시작)이므로 <code>pageNo - 1</code>로 조정</li>
-     *   <li>서비스 계층에서 해당 사용자의 리뷰를 조회하고 DTO로 변환</li>
-     *   <li>성공 시 {@link ApiResponse} 형태로 200 OK 응답 반환</li>
+     *   <li>요청 경로의 {@code userId}로 대상 사용자 존재 여부 확인 → 존재하지 않으면 {@link BusinessException} 발생</li>
+     *   <li>Spring MVC가 요청 파라미터({@code page}, {@code size}, {@code sort})를 {@link Pageable} 객체로 자동 변환</li>
+     *   <li>{@code reviewService.getReviewsByRevieweeId()} 호출 시 {@link Pageable}을 그대로 전달하여 페이징 조회 수행</li>
+     *   <li>조회 결과({@link Page}<{@link ReviewResponseDto}>)를 {@link PageResponse} 형태로 변환</li>
+     *   <li>최종적으로 {@link ApiResponse}로 감싸 200 OK 응답을 반환</li>
      * </ol>
      *
-     * @param userId  리뷰 대상 사용자의 ID (경로 변수)
-     * @param pageNo  요청한 페이지 번호 (1부터 시작, 기본값 1)
-     * @return        리뷰 목록(Page<ReviewResponseDto>)을 포함한 200 OK 응답
-     * @throws BusinessException 사용자 미존재 또는 잘못된 페이지 번호일 경우 발생
+     * <p><b>요청 파라미터 예시:</b></p>
+     * <ul>
+     *   <li>{@code GET /users/3/reviews/received?page=0&size=5&sort=createdAt,desc}</li>
+     *   <li>페이지 번호는 0부터 시작 (Spring Data JPA 기본 규칙)</li>
+     * </ul>
+     *
+     * @param userId   리뷰 대상 사용자의 고유 ID (경로 변수)
+     * @param pageable 페이징 및 정렬 정보 (기본값: size=5, sort=createdAt, direction=DESC)
+     * @return 받은 리뷰 목록을 포함한 {@link ApiResponse} (200 OK)
+     * @throws BusinessException 대상 사용자가 존재하지 않을 경우 {@link ErrorCode#USER_NOT_FOUND} 발생
      */
     @GetMapping("/{userId}/reviews/received")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<Page<ReviewResponseDto>>> getReviews(
+    public ResponseEntity<ApiResponse<PageResponse<ReviewResponseDto>>> getReviews(
             @PathVariable(name = "userId") Long userId,
-            @RequestParam(value = "page", required = false, defaultValue = "1") int pageNo
+            @PageableDefault(
+                    size = 5,
+                    sort = "createdAt",
+                    direction = Sort.Direction.DESC
+            ) Pageable pageable
     ) {
         if (!userService.existsById(userId)) {
             throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
 
-        if (pageNo < 1) {
-            throw new BusinessException(ErrorCode.INVALID_PAGE_NUMBER);
-        }
+        Page<ReviewResponseDto> page = reviewService.getReviewsByRevieweeId(userId, pageable);
 
-        Page<ReviewResponseDto> data = reviewService.getReviewsByRevieweeId(userId, pageNo - 1);
+        PageResponse<ReviewResponseDto> data = PageResponse.from(page);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.ok("리뷰 조회에 성공했습니다.", data));
