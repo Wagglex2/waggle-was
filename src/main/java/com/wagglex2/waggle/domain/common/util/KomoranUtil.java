@@ -4,7 +4,7 @@ import kr.co.shineware.nlp.komoran.constant.DEFAULT_MODEL;
 import kr.co.shineware.nlp.komoran.core.Komoran;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Set;
 
 @Component
 public class KomoranUtil {
@@ -19,7 +19,9 @@ public class KomoranUtil {
         return k;
     }
 
-    public List<String> getNouns(String target) {
-        return komoran.analyze(target).getNouns();
+    public Set<String> getNouns(String target) {
+        return Set.copyOf(
+                komoran.analyze(target).getNouns()
+        );
     }
 }
