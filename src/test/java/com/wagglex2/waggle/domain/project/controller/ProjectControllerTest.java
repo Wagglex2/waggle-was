@@ -3,7 +3,7 @@ package com.wagglex2.waggle.domain.project.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wagglex2.waggle.common.security.jwt.JwtUtil;
 import com.wagglex2.waggle.domain.common.type.*;
-import com.wagglex2.waggle.domain.project.dto.response.ProjectDetailResponseDto;
+import com.wagglex2.waggle.domain.project.dto.response.ProjectResponseDto;
 import com.wagglex2.waggle.domain.project.entity.Project;
 import com.wagglex2.waggle.domain.project.service.ProjectService;
 import com.wagglex2.waggle.domain.project.type.MeetingType;
@@ -62,7 +62,7 @@ class ProjectControllerTest {
     void getProject() throws Exception {
         // given
         Project project = createProject();
-        ProjectDetailResponseDto responseDto = ProjectDetailResponseDto.fromEntity(project);
+        ProjectResponseDto responseDto = ProjectResponseDto.fromEntity(project);
         given(projectService.getProject(1L)).willReturn(responseDto);
 
         // when

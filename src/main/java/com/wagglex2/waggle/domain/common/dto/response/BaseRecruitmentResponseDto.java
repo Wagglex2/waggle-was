@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class BaseRecruitmentDetailResponseDto {
+public class BaseRecruitmentResponseDto {
     private final Long id;
     private final Long authorId;
     private final String authorNickname;

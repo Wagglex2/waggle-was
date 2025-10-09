@@ -5,7 +5,7 @@ import com.wagglex2.waggle.common.exception.BusinessException;
 import com.wagglex2.waggle.domain.common.type.RecruitmentStatus;
 import com.wagglex2.waggle.domain.project.dto.request.ProjectCreationRequestDto;
 import com.wagglex2.waggle.domain.project.dto.request.ProjectUpdateRequestDto;
-import com.wagglex2.waggle.domain.project.dto.response.ProjectDetailResponseDto;
+import com.wagglex2.waggle.domain.project.dto.response.ProjectResponseDto;
 import com.wagglex2.waggle.domain.project.entity.Project;
 import com.wagglex2.waggle.domain.project.repository.ProjectRepository;
 import com.wagglex2.waggle.domain.project.service.ProjectService;
@@ -36,7 +36,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Transactional
     @Override
-    public ProjectDetailResponseDto getProject(Long projectId) {
+    public ProjectResponseDto getProject(Long projectId) {
         int updated = projectRepository.increaseViewCount(projectId);
 
         if (updated == 0) {
@@ -44,7 +44,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         return projectRepository.findById(projectId)
-                .map(ProjectDetailResponseDto::fromEntity).get();
+                .map(ProjectResponseDto::fromEntity).get();
     }
 
     @PreAuthorize("#userId == authentication.principal.userId")

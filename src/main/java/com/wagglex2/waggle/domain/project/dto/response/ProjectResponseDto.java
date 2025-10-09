@@ -1,7 +1,7 @@
 package com.wagglex2.waggle.domain.project.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.wagglex2.waggle.domain.common.dto.response.BaseRecruitmentDetailResponseDto;
+import com.wagglex2.waggle.domain.common.dto.response.BaseRecruitmentResponseDto;
 import com.wagglex2.waggle.domain.common.dto.response.PeriodResponseDto;
 import com.wagglex2.waggle.domain.common.dto.response.PositionInfoResponseDto;
 import com.wagglex2.waggle.domain.common.type.*;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ProjectDetailResponseDto extends BaseRecruitmentDetailResponseDto {
+public class ProjectResponseDto extends BaseRecruitmentResponseDto {
     private final ProjectPurpose purpose;
     private final MeetingType meetingType;
     private final Set<PositionInfoResponseDto> positions;
@@ -26,7 +26,7 @@ public class ProjectDetailResponseDto extends BaseRecruitmentDetailResponseDto {
     private final Set<Integer> grades;
     private final PeriodResponseDto period;
 
-    private ProjectDetailResponseDto(
+    private ProjectResponseDto(
             Long id, Long authorId, String authorNickname, RecruitmentCategory category, University university,
             String title, String content, LocalDateTime deadline, LocalDateTime createdAt,
             RecruitmentStatus status, int viewCount, ProjectPurpose purpose, MeetingType meetingType,
@@ -41,14 +41,14 @@ public class ProjectDetailResponseDto extends BaseRecruitmentDetailResponseDto {
         this.period = period;
     }
 
-    public static ProjectDetailResponseDto fromEntity(Project project) {
+    public static ProjectResponseDto fromEntity(Project project) {
         User author = project.getUser();
         PeriodResponseDto period = PeriodResponseDto.from(project.getPeriod());
         Set<PositionInfoResponseDto> positions = project.getPositions().stream()
                 .map(PositionInfoResponseDto::from)
                 .collect(Collectors.toSet());
 
-        return new ProjectDetailResponseDto(
+        return new ProjectResponseDto(
                 project.getId(), author.getId(), author.getNickname(), project.getCategory(), author.getUniversity(),
                 project.getTitle(), project.getContent(), project.getDeadline(), project.getCreatedAt(),
                 project.getStatus(), project.getViewCount(), project.getPurpose(), project.getMeetingType(),
