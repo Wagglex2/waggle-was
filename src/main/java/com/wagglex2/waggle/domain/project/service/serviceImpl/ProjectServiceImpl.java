@@ -2,7 +2,9 @@ package com.wagglex2.waggle.domain.project.service.serviceImpl;
 
 import com.wagglex2.waggle.common.error.ErrorCode;
 import com.wagglex2.waggle.common.exception.BusinessException;
+import com.wagglex2.waggle.domain.common.dto.response.PositionInfoResponseDto;
 import com.wagglex2.waggle.domain.common.type.RecruitmentStatus;
+import com.wagglex2.waggle.domain.common.type.Skill;
 import com.wagglex2.waggle.domain.project.dto.request.ProjectCreationRequestDto;
 import com.wagglex2.waggle.domain.project.dto.request.ProjectUpdateRequestDto;
 import com.wagglex2.waggle.domain.project.dto.response.ProjectResponseDto;
@@ -16,6 +18,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -43,8 +48,28 @@ public class ProjectServiceImpl implements ProjectService {
             throw new BusinessException(ErrorCode.PROJECT_NOT_FOUND);
         }
 
-        return projectRepository.findById(projectId)
-                .map(ProjectResponseDto::fromEntity).get();
+        // 각 collection 정보는 추가 쿼리로 조회 후 dto에 추가
+        // Project 정보와 User 정보
+        ProjectResponseDto responseDto = projectRepository.findByIdWithUser(projectId)
+                .map(ProjectResponseDto::fromEntity)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
+
+        // Position 정보
+        Set<PositionInfoResponseDto> positions = projectRepository.findPositionsByProjectId(projectId).stream()
+                .map(PositionInfoResponseDto::from)
+                .collect(Collectors.toSet());
+
+        // Skill 정보
+        Set<Skill> skills = projectRepository.findSkillsByProjectId(projectId);
+
+        // Grade 정보
+        Set<Integer> grades = projectRepository.findGradesByProjectId(projectId);
+
+        responseDto.setPositions(positions);
+        responseDto.setSkills(skills);
+        responseDto.setGrades(grades);
+
+        return responseDto;
     }
 
     @PreAuthorize("#userId == authentication.principal.userId")

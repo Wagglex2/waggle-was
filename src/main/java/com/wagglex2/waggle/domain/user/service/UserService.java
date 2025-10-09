@@ -10,6 +10,7 @@ public interface UserService {
     User findByUsername(String username);
     User findById(Long id);
     User findByIdWithSkills(Long id);
+    boolean existsById(Long id);
     boolean existsByEmail(String email);
     boolean existsByUsername(String username);
     boolean existsByNickname(String nickname);

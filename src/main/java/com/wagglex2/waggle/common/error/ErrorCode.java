@@ -24,6 +24,7 @@ public enum ErrorCode {
     INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "INVALID_DATE_RANGE", "유효하지 않은 날짜 범위입니다."),
     MAX_PARTICIPANTS_EXCEEDED(HttpStatus.BAD_REQUEST, "MAX_PARTICIPANTS_EXCEEDED", "참가 인원이 최대 모집 인원을 초과했습니다."),
     SELF_REVIEW_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "SELF_REVIEW_NOT_ALLOWED", "자기 자신에 대한 리뷰는 작성할 수 없습니다."),
+    INVALID_PAGE_NUMBER(HttpStatus.BAD_REQUEST, "INVALID_PAGE_NUMBER", "페이지 번호는 1 이상이어야 합니다"),
 
     // 401
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "인증이 필요합니다."),
@@ -43,6 +44,7 @@ public enum ErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "사용자를 찾을 수 없습니다."),
     IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "IMAGE_NOT_FOUND", "파일을 찾을 수 없습니다."),
     PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "PROJECT_NOT_FOUND", "프로젝트 공고를 찾을 수 없습니다."),
+    ASSIGNMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "ASSIGNMENT_NOT_FOUND", "과제 공고를 찾을 수 없습니다."),
     POSITION_NOT_FOUND(HttpStatus.NOT_FOUND, "POSITION_NOT_FOUND", "역할을 찾을 수 없습니다."),
     SKILL_NOT_FOUND(HttpStatus.NOT_FOUND, "SKILL_NOT_FOUND", "기술 스택을 찾을 수 없습니다."),
 

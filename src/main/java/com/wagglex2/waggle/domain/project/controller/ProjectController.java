@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class ProjectController {
     private final ProjectService projectService;
 
-    @PostMapping("/")
+    @PostMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<Long>> createProject(
             @RequestBody @Valid ProjectCreationRequestDto requestDto,

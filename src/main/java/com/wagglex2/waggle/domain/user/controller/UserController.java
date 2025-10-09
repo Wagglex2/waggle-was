@@ -1,7 +1,12 @@
 package com.wagglex2.waggle.domain.user.controller;
 
+import com.wagglex2.waggle.common.error.ErrorCode;
+import com.wagglex2.waggle.common.exception.BusinessException;
 import com.wagglex2.waggle.common.response.ApiResponse;
 import com.wagglex2.waggle.common.security.CustomUserDetails;
+import com.wagglex2.waggle.domain.common.dto.response.PageResponse;
+import com.wagglex2.waggle.domain.review.dto.response.ReviewResponseDto;
+import com.wagglex2.waggle.domain.review.service.ReviewService;
 import com.wagglex2.waggle.domain.user.dto.request.PasswordRequestDto;
 import com.wagglex2.waggle.domain.user.dto.request.UserUpdateRequestDto;
 import com.wagglex2.waggle.domain.user.dto.request.WithdrawRequestDto;
@@ -14,6 +19,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +41,7 @@ public class UserController {
     private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
 
     private final UserService userService;
+    private final ReviewService reviewService;
 
     /**
      * 아이디 중복 여부를 검사한다.
@@ -193,7 +203,6 @@ public class UserController {
      *   <li>탈퇴 성공 메시지를 포함한 200 OK 응답 반환</li>
      * </ol>
      *
-     *
      * @param userDetails 인증된 사용자 정보 (Spring Security Principal)
      * @param dto         탈퇴 요청 DTO (비밀번호 포함)
      * @param response    HTTP 응답 객체 (쿠키 만료 처리용)
@@ -212,6 +221,49 @@ public class UserController {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.ok("회원탈퇴에 성공했습니다."));
+    }
+
+    /**
+     * 특정 사용자가 <b>받은 리뷰 목록</b>을 페이지네이션 방식으로 조회한다.
+     *
+     * <p><b>처리 흐름:</b></p>
+     * <ol>
+     *   <li>요청 경로의 {@code userId}로 대상 사용자 존재 여부를 확인한다. 존재하지 않을 경우 {@link BusinessException} 발생.</li>
+     *   <li>Spring MVC가 요청 파라미터({@code page}, {@code size}, {@code sort})를 {@link Pageable} 객체로 자동 변환한다.</li>
+     *   <li>{@code reviewService.getReviewsByRevieweeId()}를 호출해 해당 사용자가 받은 리뷰를 조회한다.</li>
+     *   <li>서비스 계층에서 조회 결과를 {@link PageResponse}<{@link ReviewResponseDto}> 형태로 변환하여 반환한다.</li>
+     *   <li>컨트롤러는 이를 {@link ApiResponse}로 감싸 200 OK 응답을 반환한다.</li>
+     * </ol>
+     *
+     * <p><b>요청 파라미터 예시:</b></p>
+     * <ul>
+     *   <li>{@code GET /users/3/reviews/received?page=0&size=5&sort=createdAt,desc}</li>
+     *   <li>페이지 번호는 0부터 시작 (Spring Data JPA의 기본 규칙)</li>
+     * </ul>
+     *
+     * @param userId   리뷰 대상 사용자의 고유 ID (경로 변수)
+     * @param pageable 페이징 및 정렬 정보 (기본값: size=5, sort=createdAt, direction=DESC)
+     * @return 받은 리뷰 목록을 포함한 {@link ApiResponse} (200 OK)
+     * @throws BusinessException 대상 사용자가 존재하지 않을 경우 {@link ErrorCode#USER_NOT_FOUND} 발생
+     */
+    @GetMapping("/{userId}/reviews/received")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<PageResponse<ReviewResponseDto>>> getReviews(
+            @PathVariable(name = "userId") Long userId,
+            @PageableDefault(
+                    size = 5,
+                    sort = "createdAt",
+                    direction = Sort.Direction.DESC
+            ) Pageable pageable
+    ) {
+        if (!userService.existsById(userId)) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        PageResponse<ReviewResponseDto> data = reviewService.getReviewsByRevieweeId(userId, pageable);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.ok("리뷰 조회에 성공했습니다.", data));
     }
 
     /**

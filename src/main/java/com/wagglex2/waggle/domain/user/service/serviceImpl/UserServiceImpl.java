@@ -50,6 +50,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean existsById(Long id) { return userRepository.existsById(id); }
+
+    @Override
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
@@ -78,12 +81,11 @@ public class UserServiceImpl implements UserService {
      *
      * @param dto 회원가입 요청 DTO
      * @return 생성된 User의 식별자(ID)
-     * @throws BusinessException
-     *         <ul>
-     *             <li>{@link ErrorCode#DUPLICATED_USERNAME} : 이미 존재하는 아이디</li>
-     *             <li>{@link ErrorCode#DUPLICATED_EMAIL} : 이미 등록된 이메일</li>
-     *             <li>{@link ErrorCode#DUPLICATED_NICKNAME} : 이미 사용 중인 닉네임</li>
-     *         </ul>
+     * @throws BusinessException <ul>
+     *                                       <li>{@link ErrorCode#DUPLICATED_USERNAME} : 이미 존재하는 아이디</li>
+     *                                       <li>{@link ErrorCode#DUPLICATED_EMAIL} : 이미 등록된 이메일</li>
+     *                                       <li>{@link ErrorCode#DUPLICATED_NICKNAME} : 이미 사용 중인 닉네임</li>
+     *                                   </ul>
      */
     @Override
     @Transactional
@@ -118,7 +120,7 @@ public class UserServiceImpl implements UserService {
      * </ol>
      *
      * @param userId 비밀번호를 변경할 사용자 ID
-     * @param dto 비밀번호 변경 요청 DTO (old, newPassword, passwordConfirm 포함)
+     * @param dto    비밀번호 변경 요청 DTO (old, newPassword, passwordConfirm 포함)
      * @throws BusinessException PASSWORD_NOT_MATCH (기존 비밀번호 불일치 시)
      */
     @Override
