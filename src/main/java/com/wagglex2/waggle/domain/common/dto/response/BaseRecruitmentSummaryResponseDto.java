@@ -12,22 +12,17 @@ import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-public class BaseRecruitmentResponseDto {
+public abstract class BaseRecruitmentSummaryResponseDto {
     private final Long id;
     private final Long authorId;
     private final String authorNickname;
-    private final RecruitmentCategory category;
     // TODO profileImg
     private final University university;
+    private final RecruitmentCategory category;
     private final String title;
-    private final String content;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private final LocalDateTime deadline;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private final LocalDateTime createdAt;
-
     private final RecruitmentStatus status;
-    private final int viewCount;
 }

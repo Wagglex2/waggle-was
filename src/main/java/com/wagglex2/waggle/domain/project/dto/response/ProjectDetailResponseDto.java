@@ -1,7 +1,7 @@
 package com.wagglex2.waggle.domain.project.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.wagglex2.waggle.domain.common.dto.response.BaseRecruitmentResponseDto;
+import com.wagglex2.waggle.domain.common.dto.response.BaseRecruitmentDetailResponseDto;
 import com.wagglex2.waggle.domain.common.dto.response.PeriodResponseDto;
 import com.wagglex2.waggle.domain.common.dto.response.PositionInfoResponseDto;
 import com.wagglex2.waggle.domain.common.type.*;
@@ -18,7 +18,7 @@ import java.util.Set;
 
 @Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ProjectResponseDto extends BaseRecruitmentResponseDto {
+public class ProjectDetailResponseDto extends BaseRecruitmentDetailResponseDto {
     private final ProjectPurpose purpose;
     private final MeetingType meetingType;
 
@@ -33,7 +33,7 @@ public class ProjectResponseDto extends BaseRecruitmentResponseDto {
 
     private final PeriodResponseDto period;
 
-    private ProjectResponseDto(
+    private ProjectDetailResponseDto(
             Long id, Long authorId, String authorNickname, RecruitmentCategory category, University university,
             String title, String content, LocalDateTime deadline, LocalDateTime createdAt,
             RecruitmentStatus status, int viewCount, ProjectPurpose purpose, MeetingType meetingType, PeriodResponseDto period
@@ -44,11 +44,11 @@ public class ProjectResponseDto extends BaseRecruitmentResponseDto {
         this.period = period;
     }
 
-    public static ProjectResponseDto fromEntity(Project project) {
+    public static ProjectDetailResponseDto fromEntity(Project project) {
         User author = project.getUser();
         PeriodResponseDto period = PeriodResponseDto.from(project.getPeriod());
 
-        return new ProjectResponseDto(
+        return new ProjectDetailResponseDto(
                 project.getId(), author.getId(), author.getNickname(), project.getCategory(), author.getUniversity(),
                 project.getTitle(), project.getContent(), project.getDeadline(), project.getCreatedAt(),
                 project.getStatus(), project.getViewCount(), project.getPurpose(), project.getMeetingType(), period

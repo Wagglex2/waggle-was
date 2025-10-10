@@ -6,14 +6,18 @@ import com.wagglex2.waggle.domain.common.dto.response.PositionInfoResponseDto;
 import com.wagglex2.waggle.domain.common.type.RecruitmentStatus;
 import com.wagglex2.waggle.domain.common.type.Skill;
 import com.wagglex2.waggle.domain.project.dto.request.ProjectCreationRequestDto;
+import com.wagglex2.waggle.domain.project.dto.request.ProjectSearchCondition;
 import com.wagglex2.waggle.domain.project.dto.request.ProjectUpdateRequestDto;
-import com.wagglex2.waggle.domain.project.dto.response.ProjectResponseDto;
+import com.wagglex2.waggle.domain.project.dto.response.ProjectDetailResponseDto;
+import com.wagglex2.waggle.domain.project.dto.response.ProjectSummaryResponseDto;
 import com.wagglex2.waggle.domain.project.entity.Project;
 import com.wagglex2.waggle.domain.project.repository.ProjectRepository;
 import com.wagglex2.waggle.domain.project.service.ProjectService;
 import com.wagglex2.waggle.domain.user.entity.User;
 import com.wagglex2.waggle.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
@@ -41,7 +45,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Transactional
     @Override
-    public ProjectResponseDto getProject(Long projectId) {
+    public ProjectDetailResponseDto getProject(Long projectId) {
         int updated = projectRepository.increaseViewCount(projectId);
 
         if (updated == 0) {
@@ -50,8 +54,8 @@ public class ProjectServiceImpl implements ProjectService {
 
         // 각 collection 정보는 추가 쿼리로 조회 후 dto에 추가
         // Project 정보와 User 정보
-        ProjectResponseDto responseDto = projectRepository.findByIdWithUser(projectId)
-                .map(ProjectResponseDto::fromEntity)
+        ProjectDetailResponseDto responseDto = projectRepository.findByIdWithUser(projectId)
+                .map(ProjectDetailResponseDto::fromEntity)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
 
         // Position 정보
@@ -70,6 +74,14 @@ public class ProjectServiceImpl implements ProjectService {
         responseDto.setGrades(grades);
 
         return responseDto;
+    }
+
+    @Override
+    public Page<ProjectSummaryResponseDto> getProjectSummaries(
+            ProjectSearchCondition condition,
+            Pageable pageable
+    ) {
+        return projectRepository.findProjectSummaries(condition, pageable);
     }
 
     @PreAuthorize("#userId == authentication.principal.userId")

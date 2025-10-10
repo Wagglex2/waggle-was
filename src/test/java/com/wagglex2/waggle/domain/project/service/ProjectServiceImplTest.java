@@ -2,7 +2,7 @@ package com.wagglex2.waggle.domain.project.service;
 
 import com.wagglex2.waggle.domain.common.dto.response.PositionInfoResponseDto;
 import com.wagglex2.waggle.domain.common.type.*;
-import com.wagglex2.waggle.domain.project.dto.response.ProjectResponseDto;
+import com.wagglex2.waggle.domain.project.dto.response.ProjectDetailResponseDto;
 import com.wagglex2.waggle.domain.project.entity.Project;
 import com.wagglex2.waggle.domain.project.repository.ProjectRepository;
 import com.wagglex2.waggle.domain.project.service.serviceImpl.ProjectServiceImpl;
@@ -47,10 +47,10 @@ class ProjectServiceImplTest {
         given(projectRepository.increaseViewCount(1L)).willReturn(1);
 
         // when
-        ProjectResponseDto actual = projectService.getProject(1L);
+        ProjectDetailResponseDto actual = projectService.getProject(1L);
 
         // then
-        ProjectResponseDto expected = ProjectResponseDto.fromEntity(project);
+        ProjectDetailResponseDto expected = ProjectDetailResponseDto.fromEntity(project);
         expected.setPositions(project.getPositions().stream()
                 .map(PositionInfoResponseDto::from).collect(Collectors.toSet()));
         expected.setSkills(project.getSkills());

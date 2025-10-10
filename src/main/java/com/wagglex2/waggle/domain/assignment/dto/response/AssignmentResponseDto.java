@@ -2,9 +2,8 @@ package com.wagglex2.waggle.domain.assignment.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.wagglex2.waggle.domain.assignment.entity.Assignment;
-import com.wagglex2.waggle.domain.common.dto.response.BaseRecruitmentResponseDto;
+import com.wagglex2.waggle.domain.common.dto.response.BaseRecruitmentDetailResponseDto;
 import com.wagglex2.waggle.domain.common.dto.response.ParticipantInfoResponseDto;
-import com.wagglex2.waggle.domain.common.type.ParticipantInfo;
 import com.wagglex2.waggle.domain.common.type.RecruitmentCategory;
 import com.wagglex2.waggle.domain.common.type.RecruitmentStatus;
 import com.wagglex2.waggle.domain.user.entity.User;
@@ -16,7 +15,7 @@ import java.util.Set;
 
 @Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AssignmentResponseDto extends BaseRecruitmentResponseDto {
+public class AssignmentResponseDto extends BaseRecruitmentDetailResponseDto {
     private final String department;
     private final String lecture;
     private final String lectureCode;

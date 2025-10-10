@@ -25,6 +25,7 @@ public enum ErrorCode {
     MAX_PARTICIPANTS_EXCEEDED(HttpStatus.BAD_REQUEST, "MAX_PARTICIPANTS_EXCEEDED", "참가 인원이 최대 모집 인원을 초과했습니다."),
     SELF_REVIEW_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "SELF_REVIEW_NOT_ALLOWED", "자기 자신에 대한 리뷰는 작성할 수 없습니다."),
     INVALID_PAGE_NUMBER(HttpStatus.BAD_REQUEST, "INVALID_PAGE_NUMBER", "페이지 번호는 1 이상이어야 합니다"),
+    INVALID_ENUM_VALUE(HttpStatus.BAD_REQUEST, "INVALID_ENUM_VALUE", "쿼리 파라미터 값이 유효하지 않습니다. 허용 가능한 값 목록을 확인해주세요."),
 
     // 401
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "인증이 필요합니다."),
