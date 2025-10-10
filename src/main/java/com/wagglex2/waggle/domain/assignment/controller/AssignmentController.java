@@ -3,6 +3,7 @@ package com.wagglex2.waggle.domain.assignment.controller;
 import com.wagglex2.waggle.common.response.ApiResponse;
 import com.wagglex2.waggle.common.security.CustomUserDetails;
 import com.wagglex2.waggle.domain.assignment.dto.request.AssignmentCreationRequestDto;
+import com.wagglex2.waggle.domain.assignment.dto.request.AssignmentUpdateRequestDto;
 import com.wagglex2.waggle.domain.assignment.dto.response.AssignmentResponseDto;
 import com.wagglex2.waggle.domain.assignment.service.AssignmentService;
 import jakarta.validation.Valid;
@@ -23,7 +24,8 @@ public class AssignmentController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<Long>> createAssignment(
             @RequestBody @Valid AssignmentCreationRequestDto requestDto,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
         Long assignmentId = assignmentService.createAssignment(requestDto, userDetails.getUserId());
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -37,6 +39,20 @@ public class AssignmentController {
 
         return ResponseEntity.ok(
                 ApiResponse.ok("과제 공고를 성공적으로 조회하였습니다.", responseDto)
+        );
+    }
+
+    @PutMapping("/{assignmentId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> updateAssignment(
+            @PathVariable Long assignmentId,
+            @RequestBody @Valid AssignmentUpdateRequestDto requestDto,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        assignmentService.updateAssignment(userDetails.getUserId(), assignmentId, requestDto);
+
+        return ResponseEntity.ok(
+                ApiResponse.ok("과제 공고를 성공적으로 수정하였습니다.")
         );
     }
 }

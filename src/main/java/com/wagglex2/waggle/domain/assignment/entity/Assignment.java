@@ -1,6 +1,7 @@
 package com.wagglex2.waggle.domain.assignment.entity;
 
 import com.wagglex2.waggle.domain.assignment.dto.request.AssignmentUpdateRequestDto;
+import com.wagglex2.waggle.domain.common.dto.request.GradeRequestDto;
 import com.wagglex2.waggle.domain.common.entity.BaseRecruitment;
 import com.wagglex2.waggle.domain.common.type.ParticipantInfo;
 import com.wagglex2.waggle.domain.common.type.RecruitmentCategory;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 과제 모집 공고 엔티티.
@@ -71,6 +73,18 @@ public class Assignment extends BaseRecruitment {
     }
 
     public void update(AssignmentUpdateRequestDto dto) {
+        update(dto.getTitle(), dto.getContent(), dto.getDeadline());
 
+        Set<Integer> grades = dto.getGrades().stream()
+                .map(GradeRequestDto::grade)
+                .collect(Collectors.toSet());
+
+        this.department = dto.getDepartment();
+        this.lecture = dto.getLecture();
+        this.lectureCode = dto.getLectureCode();
+        this.participants = new ParticipantInfo(dto.getMaxParticipants());
+        this.grades.clear();
+        this.grades.addAll(grades);
+        changeStatusByDeadline();
     }
 }
