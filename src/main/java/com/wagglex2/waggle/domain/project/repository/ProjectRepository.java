@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @Repository
-public interface ProjectRepository extends JpaRepository<Project, Long> {
+public interface ProjectRepository extends JpaRepository<Project, Long>, ProjectRepositoryCustom {
 
     // 1. Project + User
     @Query("SELECT p FROM Project p JOIN FETCH p.user u WHERE p.id = :id")
@@ -30,7 +30,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     // 4. Grades
     @Query("SELECT g FROM Project p JOIN p.grades g WHERE p.id = :id")
     Set<Integer> findGradesByProjectId(@Param("id") Long id);
-
 
     @Modifying(clearAutomatically = true)
     @Query("UPDATE Project p SET p.viewCount = p.viewCount + 1 WHERE p.id = :id")

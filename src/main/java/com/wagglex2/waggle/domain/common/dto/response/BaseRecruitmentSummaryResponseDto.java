@@ -16,9 +16,9 @@ public abstract class BaseRecruitmentSummaryResponseDto {
     private final Long id;
     private final Long authorId;
     private final String authorNickname;
-    private final RecruitmentCategory category;
     // TODO profileImg
     private final University university;
+    private final RecruitmentCategory category;
     private final String title;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
