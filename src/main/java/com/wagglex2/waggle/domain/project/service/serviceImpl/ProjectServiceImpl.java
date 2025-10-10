@@ -6,14 +6,18 @@ import com.wagglex2.waggle.domain.common.dto.response.PositionInfoResponseDto;
 import com.wagglex2.waggle.domain.common.type.RecruitmentStatus;
 import com.wagglex2.waggle.domain.common.type.Skill;
 import com.wagglex2.waggle.domain.project.dto.request.ProjectCreationRequestDto;
+import com.wagglex2.waggle.domain.project.dto.request.ProjectSearchCondition;
 import com.wagglex2.waggle.domain.project.dto.request.ProjectUpdateRequestDto;
 import com.wagglex2.waggle.domain.project.dto.response.ProjectDetailResponseDto;
+import com.wagglex2.waggle.domain.project.dto.response.ProjectSummaryResponseDto;
 import com.wagglex2.waggle.domain.project.entity.Project;
 import com.wagglex2.waggle.domain.project.repository.ProjectRepository;
 import com.wagglex2.waggle.domain.project.service.ProjectService;
 import com.wagglex2.waggle.domain.user.entity.User;
 import com.wagglex2.waggle.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
@@ -70,6 +74,14 @@ public class ProjectServiceImpl implements ProjectService {
         responseDto.setGrades(grades);
 
         return responseDto;
+    }
+
+    @Override
+    public Page<ProjectSummaryResponseDto> getProjectSummaries(
+            ProjectSearchCondition condition,
+            Pageable pageable
+    ) {
+        return projectRepository.findProjectSummaries(condition, pageable);
     }
 
     @PreAuthorize("#userId == authentication.principal.userId")
