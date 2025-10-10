@@ -1,5 +1,6 @@
 package com.wagglex2.waggle.domain.assignment.entity;
 
+import com.wagglex2.waggle.domain.assignment.dto.request.AssignmentUpdateRequestDto;
 import com.wagglex2.waggle.domain.common.entity.BaseRecruitment;
 import com.wagglex2.waggle.domain.common.type.ParticipantInfo;
 import com.wagglex2.waggle.domain.common.type.RecruitmentCategory;
@@ -67,5 +68,9 @@ public class Assignment extends BaseRecruitment {
         this.lectureCode = lectureCode;
         this.participants = participants;
         this.grades = grades;
+    }
+
+    public void update(AssignmentUpdateRequestDto dto) {
+
     }
 }
