@@ -53,7 +53,7 @@ public class Assignment extends BaseRecruitment {
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
-            name = "recruitment_grades",
+            name = "assignment_grades",
             joinColumns = @JoinColumn(name = "recruitment_id", referencedColumnName = "id")
     )
     private Set<Integer> grades = new HashSet<>();
