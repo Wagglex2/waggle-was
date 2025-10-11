@@ -27,7 +27,6 @@ public class AssignmentServiceImpl implements AssignmentService {
     @Transactional
     @Override
     public Long createAssignment(AssignmentCreationRequestDto requestDto, Long userId) {
-        // requestDto.validate();
         User user = userService.findById(userId);
         Assignment newAssignment = AssignmentCreationRequestDto.toEntity(user, requestDto);
 
@@ -54,7 +53,6 @@ public class AssignmentServiceImpl implements AssignmentService {
     public void updateAssignment(
             @P("userId") Long userId, Long assignmentId, AssignmentUpdateRequestDto updateDto
     ) {
-        // updateDto.validate();
         Assignment assignment = assignmentRepository.findById(assignmentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ASSIGNMENT_NOT_FOUND));
 

@@ -5,6 +5,7 @@ import com.wagglex2.waggle.domain.assignment.dto.request.AssignmentUpdateRequest
 import com.wagglex2.waggle.domain.assignment.entity.Assignment;
 import com.wagglex2.waggle.domain.assignment.repository.AssignmentRepository;
 import com.wagglex2.waggle.domain.common.dto.request.GradeRequestDto;
+import com.wagglex2.waggle.domain.common.dto.request.ParticipantInfoUpdateRequestDto;
 import com.wagglex2.waggle.domain.common.type.ParticipantInfo;
 import com.wagglex2.waggle.domain.common.type.PositionType;
 import com.wagglex2.waggle.domain.common.type.RecruitmentStatus;
@@ -66,7 +67,6 @@ public class AssignmentServiceIntegrationTest {
         LocalDateTime beforeUpdatedAt = assignment.getUpdatedAt();
         RecruitmentStatus beforeStatus = assignment.getStatus();
 
-        // 수정 전 상태 확인
         assertThat(beforeStatus).isEqualTo(RecruitmentStatus.RECRUITING);
 
         AssignmentUpdateRequestDto updateDto = createUpdateDto();
@@ -82,20 +82,20 @@ public class AssignmentServiceIntegrationTest {
         assertThat(assignment.getDepartment()).isEqualTo(updateDto.getDepartment());
         assertThat(assignment.getLecture()).isEqualTo(updateDto.getLecture());
         assertThat(assignment.getLectureCode()).isEqualTo(updateDto.getLectureCode());
-        assertThat(assignment.getParticipants().getMaxParticipants()).isEqualTo(updateDto.getMaxParticipants());
+        assertThat(assignment.getParticipants().getMaxParticipants())
+                .isEqualTo(updateDto.getParticipants().maxParticipants());
         assertThat(assignment.getGrades()).containsExactlyInAnyOrder(4);
 
-        // 수정일이 갱신되었는지 확인
         assertThat(assignment.getUpdatedAt()).isAfter(beforeUpdatedAt);
-
-        // 마감일이 지난 경우, 상태가 "CLOSED"로 바뀌었는지 확인
         assertThat(assignment.getStatus()).isEqualTo(RecruitmentStatus.CLOSED);
     }
 
     private AssignmentUpdateRequestDto createUpdateDto() {
-        // 마감일이 '오늘'보다 빠름 → 수정 시 status가 "CLOSED"로 바뀌어야 함
         LocalDateTime deadline = LocalDateTime.now().minusDays(1)
                 .withHour(23).withMinute(59).withSecond(59);
+
+        ParticipantInfoUpdateRequestDto participants =
+                new ParticipantInfoUpdateRequestDto(8, 3); // 최대 8명, 현재 3명
 
         return new AssignmentUpdateRequestDto(
                 "수정된 제목",
@@ -104,13 +104,12 @@ public class AssignmentServiceIntegrationTest {
                 "소프트웨어학과",
                 "운영체제",
                 "CSE301",
-                8,
+                participants,
                 Set.of(new GradeRequestDto(4))
         );
     }
 
     private Assignment createAssignment() {
-        // 마감일이 '오늘'보다 늦음
         LocalDateTime deadline = LocalDateTime.now().plusDays(2)
                 .withHour(23).withMinute(59).withSecond(59);
 

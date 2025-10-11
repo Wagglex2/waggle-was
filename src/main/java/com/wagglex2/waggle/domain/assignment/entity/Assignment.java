@@ -82,7 +82,10 @@ public class Assignment extends BaseRecruitment {
         this.department = dto.getDepartment();
         this.lecture = dto.getLecture();
         this.lectureCode = dto.getLectureCode();
-        this.participants = new ParticipantInfo(dto.getMaxParticipants());
+        this.participants = new ParticipantInfo(
+                dto.getParticipants().maxParticipants(),
+                dto.getParticipants().currParticipants()
+        );
         this.grades.clear();
         this.grades.addAll(grades);
         changeStatusByDeadline();
