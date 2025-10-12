@@ -96,7 +96,7 @@ public abstract class BaseRecruitment {
         this.deadline = deadline;
     }
 
-    protected void changeStatusByDeadline() {
+    public void changeStatusByDeadline() {
         if (this.status == RecruitmentStatus.CANCELED) {
             return;
         }
