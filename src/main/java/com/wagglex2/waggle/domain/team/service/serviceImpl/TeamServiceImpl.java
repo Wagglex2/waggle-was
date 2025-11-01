@@ -1,5 +1,6 @@
 package com.wagglex2.waggle.domain.team.service.serviceImpl;
 
+import com.wagglex2.waggle.common.validator.PageableValidator;
 import com.wagglex2.waggle.domain.common.type.RecruitmentCategory;
 import com.wagglex2.waggle.domain.common.type.RecruitmentStatus;
 import com.wagglex2.waggle.domain.team.dto.response.TeamResponseDto;
@@ -12,12 +13,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class TeamServiceImpl implements TeamService {
 
     private final TeamRepository teamRepository;
+    private final PageableValidator pageableValidator;
+
+    private static final Set<String> MY_TEAM_SORT_FIELDS =
+            Set.of("createdAt", "updatedAt", "id");
 
     @Override
     @Transactional
@@ -42,6 +49,9 @@ public class TeamServiceImpl implements TeamService {
             RecruitmentStatus status,
             Pageable pageable
     ) {
+
+        pageableValidator.validate(pageable);
+        pageableValidator.validateSort(pageable, MY_TEAM_SORT_FIELDS);
 
         Page<Team> teams = teamRepository.findDistinctByRecruitmentCategoryAndRecruitmentStatusAndRecruitmentUserId(
                 category, status, userId, pageable

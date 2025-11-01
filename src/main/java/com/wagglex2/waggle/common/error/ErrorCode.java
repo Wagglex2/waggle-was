@@ -26,6 +26,10 @@ public enum ErrorCode {
     SELF_REVIEW_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "SELF_REVIEW_NOT_ALLOWED", "자기 자신에 대한 리뷰는 작성할 수 없습니다."),
     INVALID_PAGE_NUMBER(HttpStatus.BAD_REQUEST, "INVALID_PAGE_NUMBER", "페이지 번호는 1 이상이어야 합니다"),
     INVALID_ENUM_VALUE(HttpStatus.BAD_REQUEST, "INVALID_ENUM_VALUE", "쿼리 파라미터 값이 유효하지 않습니다. 허용 가능한 값 목록을 확인해주세요."),
+    INVALID_SORT_PROPERTY(HttpStatus.BAD_REQUEST, "INVALID_SORT_PROPERTY", "잘못된 정렬 기준입니다."),
+    INVALID_SORT_DIRECTION(HttpStatus.BAD_REQUEST, "INVALID_SORT_DIRECTION", "정렬 방향은 asc 또는 desc만 가능합니다."),
+    PAGE_SIZE_OUT_OF_RANGE(HttpStatus.BAD_REQUEST, "PAGE_SIZE_OUT_OF_RANGE", "페이지 크기는 1 이상이어야 합니다."),
+    PAGE_INDEX_OUT_OF_RANGE(HttpStatus.BAD_REQUEST, "PAGE_INDEX_OUT_OF_RANGE", "페이지 번호는 0 이상이어야 합니다."),
 
     // 401
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "인증이 필요합니다."),
