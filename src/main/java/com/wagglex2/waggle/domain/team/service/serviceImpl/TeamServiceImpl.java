@@ -24,7 +24,7 @@ public class TeamServiceImpl implements TeamService {
     private final PageableValidator pageableValidator;
 
     private static final Set<String> MY_TEAM_SORT_FIELDS =
-            Set.of("createdAt", "updatedAt", "id");
+            Set.of("createdAt");
 
     @Override
     @Transactional

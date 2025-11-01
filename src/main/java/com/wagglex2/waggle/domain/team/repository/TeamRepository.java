@@ -39,9 +39,9 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
             type = EntityGraph.EntityGraphType.LOAD
     )
     Page<Team> findDistinctByRecruitmentCategoryAndRecruitmentStatusAndRecruitmentUserId(
-            @Param("category") RecruitmentCategory category,
-            @Param("status") RecruitmentStatus status,
-            @Param("userId") Long userId,
+            RecruitmentCategory category,
+            RecruitmentStatus status,
+            Long userId,
             Pageable pageable
     );
 }
