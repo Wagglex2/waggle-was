@@ -43,8 +43,8 @@ public class TeamServiceImpl implements TeamService {
             Pageable pageable
     ) {
 
-        Page<Team> teams = teamRepository.findByUserIdAndCategoryAndStatus(
-                userId, category, status, pageable
+        Page<Team> teams = teamRepository.findDistinctByRecruitmentCategoryAndRecruitmentStatusAndRecruitmentUserId(
+                category, status, userId, pageable
         );
 
         teams.getContent().forEach(team -> {

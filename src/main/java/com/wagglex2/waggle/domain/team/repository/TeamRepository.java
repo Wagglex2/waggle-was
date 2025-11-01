@@ -8,7 +8,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -39,25 +38,10 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
             },
             type = EntityGraph.EntityGraphType.LOAD
     )
-    @Query(
-            value = """
-                    SELECT DISTINCT t
-                    FROM Team t
-                    WHERE t.recruitment.category = :category
-                    AND t.recruitment.status = :status
-                    AND t.recruitment.user.id = :userId
-                    """,
-            countQuery = """
-                    SELECT COUNT(t)
-                    FROM Team t
-                    WHERE t.recruitment.category = :category
-                    AND t.recruitment.status = :status
-                    AND t.recruitment.user.id = :userId
-                    """)
-    Page<Team> findByUserIdAndCategoryAndStatus(
-            @Param("userId") Long userId,
+    Page<Team> findDistinctByRecruitmentCategoryAndRecruitmentStatusAndRecruitmentUserId(
             @Param("category") RecruitmentCategory category,
             @Param("status") RecruitmentStatus status,
+            @Param("userId") Long userId,
             Pageable pageable
     );
 }
