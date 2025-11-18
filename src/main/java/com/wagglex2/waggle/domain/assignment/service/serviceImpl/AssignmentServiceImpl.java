@@ -51,14 +51,27 @@ public class AssignmentServiceImpl implements AssignmentService {
 
     @Transactional
     @Override
-    public AssignmentDetailResponseDto getAssignment(Long assignmentId) {
-        int updated = assignmentRepository.increaseViewCount(assignmentId);
-        if (updated == 0) {
+    public AssignmentDetailResponseDto getAssignment(Long viewerId, Long assignmentId) {
+        Assignment assignment = assignmentRepository.findWithAllById(assignmentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ASSIGNMENT_NOT_FOUND));
+
+        // 삭제 여부 확인
+        if (assignment.getStatus() == RecruitmentStatus.CANCELED) {
             throw new BusinessException(ErrorCode.ASSIGNMENT_NOT_FOUND);
         }
 
-        Assignment assignment = assignmentRepository.findById(assignmentId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.ASSIGNMENT_NOT_FOUND));
+        User viewer = userService.findById(viewerId);
+
+        // 타 대학 공고를 조회하려는 경우
+        if (viewer.getUniversity() != assignment.getUser().getUniversity()) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_CROSS_UNIVERSITY_RECRUITMENT);
+        }
+
+        int updated = assignmentRepository.increaseViewCount(assignmentId);
+
+        if (updated == 0) {
+            throw new BusinessException(ErrorCode.ASSIGNMENT_NOT_FOUND);
+        }
 
         return AssignmentDetailResponseDto.fromEntity(assignment);
     }

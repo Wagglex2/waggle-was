@@ -5,10 +5,7 @@ import com.wagglex2.waggle.common.security.jwt.JwtUtil;
 import com.wagglex2.waggle.domain.assignment.dto.response.AssignmentDetailResponseDto;
 import com.wagglex2.waggle.domain.assignment.entity.Assignment;
 import com.wagglex2.waggle.domain.assignment.service.AssignmentService;
-import com.wagglex2.waggle.domain.common.dto.response.ParticipantInfoResponseDto;
 import com.wagglex2.waggle.domain.common.type.ParticipantInfo;
-import com.wagglex2.waggle.domain.common.type.RecruitmentCategory;
-import com.wagglex2.waggle.domain.common.type.RecruitmentStatus;
 import com.wagglex2.waggle.domain.user.entity.User;
 import com.wagglex2.waggle.domain.user.entity.type.University;
 import com.wagglex2.waggle.domain.user.service.UserService;
@@ -59,7 +56,7 @@ class AssignmentControllerTest {
         // given
         Assignment assignment = createAssignment();
         AssignmentDetailResponseDto responseDto = AssignmentDetailResponseDto.fromEntity(assignment);
-        given(assignmentService.getAssignment(1L)).willReturn(responseDto);
+        given(assignmentService.getAssignment(1L, 1L)).willReturn(responseDto);
 
         // when
         String responseJson = mockMvc.perform(

@@ -4,10 +4,7 @@ import com.wagglex2.waggle.domain.assignment.dto.response.AssignmentDetailRespon
 import com.wagglex2.waggle.domain.assignment.entity.Assignment;
 import com.wagglex2.waggle.domain.assignment.repository.AssignmentRepository;
 import com.wagglex2.waggle.domain.assignment.service.serviceImpl.AssignmentServiceImpl;
-import com.wagglex2.waggle.domain.common.dto.response.ParticipantInfoResponseDto;
 import com.wagglex2.waggle.domain.common.type.ParticipantInfo;
-import com.wagglex2.waggle.domain.common.type.RecruitmentCategory;
-import com.wagglex2.waggle.domain.common.type.RecruitmentStatus;
 import com.wagglex2.waggle.domain.user.entity.User;
 import com.wagglex2.waggle.domain.user.entity.type.University;
 import org.junit.jupiter.api.DisplayName;
@@ -43,7 +40,7 @@ class AssignmentServiceImplTest {
         given(assignmentRepository.increaseViewCount(1L)).willReturn(1);
 
         // when
-        AssignmentDetailResponseDto actual = assignmentService.getAssignment(1L);
+        AssignmentDetailResponseDto actual = assignmentService.getAssignment(1L, 1L);
 
         // then
         AssignmentDetailResponseDto expected = AssignmentDetailResponseDto.fromEntity(assignment);

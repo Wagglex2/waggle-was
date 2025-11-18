@@ -39,13 +39,13 @@ public class AssignmentDetailResponseDto extends BaseRecruitmentDetailResponseDt
     public static AssignmentDetailResponseDto fromEntity(Assignment assignment) {
         User author = assignment.getUser();
         ParticipantInfoResponseDto participants = ParticipantInfoResponseDto.from(assignment.getParticipants());
-
+        Set<Integer> grades = Set.copyOf(assignment.getGrades());
 
         return new AssignmentDetailResponseDto(
                 assignment.getId(), author.getId(), author.getNickname(), assignment.getCategory(), author.getUniversity(),
                 assignment.getTitle(), assignment.getContent(), assignment.getDeadline(), assignment.getCreatedAt(),
                 assignment.getStatus(), assignment.getViewCount(), assignment.getDepartment(), assignment.getLecture(),
-                assignment.getLectureCode(), participants, assignment.getGrades()
+                assignment.getLectureCode(), participants, grades
         );
     }
 }

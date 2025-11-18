@@ -44,8 +44,12 @@ public class AssignmentController {
 
     @GetMapping("/{assignmentId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<APIResponse<AssignmentDetailResponseDto>> getAssignment(@PathVariable Long assignmentId) {
-        AssignmentDetailResponseDto responseDto = assignmentService.getAssignment(assignmentId);
+    public ResponseEntity<APIResponse<AssignmentDetailResponseDto>> getAssignment(
+            @PathVariable Long assignmentId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        AssignmentDetailResponseDto responseDto =
+                assignmentService.getAssignment(userDetails.getUserId(), assignmentId);
 
         return ResponseEntity.ok(
                 APIResponse.ok("과제 공고를 성공적으로 조회하였습니다.", responseDto)
