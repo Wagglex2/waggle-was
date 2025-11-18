@@ -205,10 +205,6 @@ public interface ProjectControllerDocs {
                                                                 "desc": "오프라인",
                                                                 "name": "OFFLINE"
                                                             },
-                                                            "period": {
-                                                                "startDate": "2025-12-25",
-                                                                "endDate": "2026-03-20"
-                                                            },
                                                             "positions": [
                                                                 {
                                                                     "position": {
@@ -244,8 +240,29 @@ public interface ProjectControllerDocs {
                                                             "grades": [
                                                                 2,
                                                                 3
-                                                            ]
+                                                            ],
+                                                            "period": {
+                                                                "startDate": "2025-12-25",
+                                                                "endDate": "2026-03-20"
+                                                            }
                                                         }
+                                                    }
+                                                    """
+                                    )
+                            }
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "**타 대학 공고인 경우**",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            value = """
+                                                    {
+                                                        "code": "FORBIDDEN_CROSS_UNIVERSITY_RECRUITMENT",
+                                                        "message": "타 대학의 공고입니다."
                                                     }
                                                     """
                                     )
@@ -270,7 +287,10 @@ public interface ProjectControllerDocs {
                     )
             )
     })
-    ResponseEntity<APIResponse<ProjectDetailResponseDto>> getProject(@PathVariable Long projectId);
+    ResponseEntity<APIResponse<ProjectDetailResponseDto>> getProject(
+            @PathVariable Long projectId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    );
 
     @Operation(
             summary = "프로젝트 공고 목록 조회(검색)",

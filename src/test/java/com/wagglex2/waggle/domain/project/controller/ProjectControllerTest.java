@@ -9,6 +9,7 @@ import com.wagglex2.waggle.domain.project.service.ProjectService;
 import com.wagglex2.waggle.domain.project.type.MeetingType;
 import com.wagglex2.waggle.domain.project.type.ProjectPurpose;
 import com.wagglex2.waggle.domain.user.entity.User;
+import com.wagglex2.waggle.domain.user.entity.type.University;
 import com.wagglex2.waggle.domain.user.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -63,7 +64,7 @@ class ProjectControllerTest {
         // given
         Project project = createProject();
         ProjectDetailResponseDto responseDto = ProjectDetailResponseDto.fromEntity(project);
-        given(projectService.getProject(1L)).willReturn(responseDto);
+        given(projectService.getProject(1L, 1L)).willReturn(responseDto);
 
         // when
         String responseJson = mockMvc.perform(

@@ -39,7 +39,8 @@ public class ProjectController implements ProjectControllerDocs {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<APIResponse<Long>> createProject(
             @RequestBody @Valid ProjectCreationRequestDto requestDto,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
         Long projectId = projectService.createProject(userDetails.getUserId(), requestDto);
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -48,8 +49,12 @@ public class ProjectController implements ProjectControllerDocs {
 
     @GetMapping("/{projectId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<APIResponse<ProjectDetailResponseDto>> getProject(@PathVariable Long projectId) {
-        ProjectDetailResponseDto responseDto = projectService.getProject(projectId);
+    public ResponseEntity<APIResponse<ProjectDetailResponseDto>> getProject(
+            @PathVariable Long projectId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        ProjectDetailResponseDto responseDto =
+                projectService.getProject(userDetails.getUserId(), projectId);
 
         return ResponseEntity.ok(
                 APIResponse.ok("프로젝트 공고를 성공적으로 조회하였습니다.", responseDto)

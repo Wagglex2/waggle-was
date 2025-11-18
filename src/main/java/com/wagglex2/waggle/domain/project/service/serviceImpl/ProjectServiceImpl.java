@@ -2,9 +2,7 @@ package com.wagglex2.waggle.domain.project.service.serviceImpl;
 
 import com.wagglex2.waggle.common.error.ErrorCode;
 import com.wagglex2.waggle.common.exception.BusinessException;
-import com.wagglex2.waggle.domain.common.dto.response.PositionInfoResponseDto;
 import com.wagglex2.waggle.domain.common.type.RecruitmentStatus;
-import com.wagglex2.waggle.domain.common.type.Skill;
 import com.wagglex2.waggle.domain.project.dto.request.ProjectCreationRequestDto;
 import com.wagglex2.waggle.domain.project.dto.request.ProjectSearchCondition;
 import com.wagglex2.waggle.domain.project.dto.request.ProjectUpdateRequestDto;
@@ -17,7 +15,6 @@ import com.wagglex2.waggle.domain.team.entity.Team;
 import com.wagglex2.waggle.domain.team.service.TeamService;
 import com.wagglex2.waggle.domain.team_member.entity.TeamMember;
 import com.wagglex2.waggle.domain.team_member.entity.type.TeamRole;
-import com.wagglex2.waggle.domain.team_member.service.TeamMemberService;
 import com.wagglex2.waggle.domain.user.entity.User;
 import com.wagglex2.waggle.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -59,35 +54,29 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Transactional
     @Override
-    public ProjectDetailResponseDto getProject(Long projectId) {
+    public ProjectDetailResponseDto getProject(Long viewerId, Long projectId) {
+        Project project = projectRepository.findWithAllById(projectId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
+
+        // 삭제 여부 확인
+        if (project.getStatus() == RecruitmentStatus.CANCELED) {
+            throw new BusinessException(ErrorCode.PROJECT_NOT_FOUND);
+        }
+
+        User viewer = userService.findById(viewerId);
+
+        // 타 대학 공고를 조회하려는 경우
+        if (viewer.getUniversity() != project.getUser().getUniversity()) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_CROSS_UNIVERSITY_RECRUITMENT);
+        }
+
         int updated = projectRepository.increaseViewCount(projectId);
 
         if (updated == 0) {
             throw new BusinessException(ErrorCode.PROJECT_NOT_FOUND);
         }
 
-        // 각 collection 정보는 추가 쿼리로 조회 후 dto에 추가
-        // Project 정보와 User 정보
-        ProjectDetailResponseDto responseDto = projectRepository.findByIdWithUser(projectId)
-                .map(ProjectDetailResponseDto::fromEntity)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
-
-        // Position 정보
-        Set<PositionInfoResponseDto> positions = projectRepository.findPositionsByProjectId(projectId).stream()
-                .map(PositionInfoResponseDto::from)
-                .collect(Collectors.toSet());
-
-        // Skill 정보
-        Set<Skill> skills = projectRepository.findSkillsByProjectId(projectId);
-
-        // Grade 정보
-        Set<Integer> grades = projectRepository.findGradesByProjectId(projectId);
-
-        responseDto.setPositions(positions);
-        responseDto.setSkills(skills);
-        responseDto.setGrades(grades);
-
-        return responseDto;
+        return ProjectDetailResponseDto.fromEntity(project);
     }
 
     @Override

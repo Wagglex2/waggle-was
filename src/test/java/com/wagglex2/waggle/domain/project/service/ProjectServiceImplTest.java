@@ -40,30 +40,18 @@ class ProjectServiceImplTest {
     void getProject() {
         // given
         Project project = createProject();
-        given(projectRepository.findByIdWithUser(1L)).willReturn(Optional.of(project));
-        given(projectRepository.findPositionsByProjectId(1L)).willReturn(project.getPositions());
-        given(projectRepository.findSkillsByProjectId(1L)).willReturn(project.getSkills());
-        given(projectRepository.findGradesByProjectId(1L)).willReturn(project.getGrades());
         given(projectRepository.increaseViewCount(1L)).willReturn(1);
 
         // when
-        ProjectDetailResponseDto actual = projectService.getProject(1L);
+        ProjectDetailResponseDto actual = projectService.getProject(1L, 1L);
 
         // then
         ProjectDetailResponseDto expected = ProjectDetailResponseDto.fromEntity(project);
-        expected.setPositions(project.getPositions().stream()
-                .map(PositionInfoResponseDto::from).collect(Collectors.toSet()));
-        expected.setSkills(project.getSkills());
-        expected.setGrades(project.getGrades());
 
         assertThat(actual).usingRecursiveComparison()
                 .ignoringFields("viewCount")
                 .isEqualTo(expected);
 
-        verify(projectRepository, times(1)).findByIdWithUser(1L);
-        verify(projectRepository, times(1)).findPositionsByProjectId(1L);
-        verify(projectRepository, times(1)).findSkillsByProjectId(1L);
-        verify(projectRepository, times(1)).findGradesByProjectId(1L);
         verify(projectRepository, times(1)).increaseViewCount(1L);
     }
 
