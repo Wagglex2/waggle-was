@@ -42,7 +42,7 @@ class StudyServiceImplTest {
         given(studyRepository.increaseViewCount(1L)).willReturn(1);
 
         // when
-        StudyResponseDto actual = studyService.getStudy(1L);
+        StudyResponseDto actual = studyService.getStudy(1L, 1L);
 
         // then
         StudyResponseDto expected = StudyResponseDto.fromEntity(study);

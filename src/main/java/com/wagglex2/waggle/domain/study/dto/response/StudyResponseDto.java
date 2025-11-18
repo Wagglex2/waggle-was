@@ -11,7 +11,6 @@ import com.wagglex2.waggle.domain.study.entity.Study;
 import com.wagglex2.waggle.domain.user.entity.User;
 import com.wagglex2.waggle.domain.user.entity.type.University;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -20,19 +19,18 @@ import java.util.Set;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class StudyResponseDto extends BaseRecruitmentDetailResponseDto {
     private final ParticipantInfoResponseDto participants;
+    private final Set<Skill> skills;
     private final PeriodResponseDto period;
 
-    @Setter
-    private Set<Skill> skills;
-
     private StudyResponseDto(
-            Long id, Long authorId, String authorNickname, RecruitmentCategory category, University university,
-            String title, String content, LocalDateTime deadline, LocalDateTime createdAt,
-            RecruitmentStatus status, int viewCount,
-            ParticipantInfoResponseDto participants, PeriodResponseDto period
+            Long id, Long authorId, String authorNickname, RecruitmentCategory category,
+            University university, String title, String content, LocalDateTime deadline,
+            LocalDateTime createdAt, RecruitmentStatus status, int viewCount,
+            ParticipantInfoResponseDto participants, Set<Skill> skills, PeriodResponseDto period
     ) {
         super(id, authorId, authorNickname, category, university, title, content, deadline, createdAt, status, viewCount);
         this.participants = participants;
+        this.skills = skills;
         this.period = period;
     }
 
@@ -40,12 +38,12 @@ public class StudyResponseDto extends BaseRecruitmentDetailResponseDto {
         User author = study.getUser();
         ParticipantInfoResponseDto participants = ParticipantInfoResponseDto.from(study.getParticipants());
         PeriodResponseDto period = PeriodResponseDto.from(study.getPeriod());
-
+        Set<Skill> skills = Set.copyOf(study.getSkills());
 
         return new StudyResponseDto(
                 study.getId(), author.getId(), author.getNickname(), study.getCategory(), author.getUniversity(),
                 study.getTitle(), study.getContent(), study.getDeadline(), study.getCreatedAt(),
-                study.getStatus(), study.getViewCount(), participants, period
+                study.getStatus(), study.getViewCount() + 1, participants, skills, period
         );
     }
 }

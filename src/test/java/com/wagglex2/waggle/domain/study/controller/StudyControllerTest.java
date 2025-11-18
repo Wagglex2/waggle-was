@@ -56,7 +56,7 @@ class StudyControllerTest {
         // given
         Study study = createStudy();
         StudyResponseDto responseDto = StudyResponseDto.fromEntity(study);
-        given(studyService.getStudy(1L)).willReturn(responseDto);
+        given(studyService.getStudy(1L, 1L)).willReturn(responseDto);
 
         // when
         String responseJson = mockMvc.perform(

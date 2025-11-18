@@ -33,8 +33,11 @@ public class StudyController {
 
     @GetMapping("/{studyId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<APIResponse<StudyResponseDto>> getStudy(@PathVariable Long studyId) {
-        StudyResponseDto responseDto = studyService.getStudy(studyId);
+    public ResponseEntity<APIResponse<StudyResponseDto>> getStudy(
+            @PathVariable Long studyId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        StudyResponseDto responseDto = studyService.getStudy(userDetails.getUserId(), studyId);
 
         return ResponseEntity.ok(
                 APIResponse.ok("스터디 공고를 성공적으로 조회하였습니다.", responseDto)

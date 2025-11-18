@@ -1,14 +1,24 @@
 package com.wagglex2.waggle.domain.study.repository;
 
 import com.wagglex2.waggle.domain.study.entity.Study;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface StudyRepository extends JpaRepository<Study, Long> {
+
+    @EntityGraph(
+            attributePaths = {"user", "skills"},
+            type = EntityGraph.EntityGraphType.LOAD
+    )
+    Optional<Study> findWithAllById(Long studyId);
+
     @Modifying(clearAutomatically = true)
     @Query("update Study a set a.viewCount = a.viewCount + 1 where a.id = :studyId")
     int increaseViewCount(@Param("studyId") Long studyId);
