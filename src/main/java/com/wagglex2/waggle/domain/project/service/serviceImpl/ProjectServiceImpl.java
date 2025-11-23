@@ -242,6 +242,9 @@ public class ProjectServiceImpl implements ProjectService {
             throw new BusinessException(ErrorCode.CANNOT_DELETE_ANOTHER_USER_PROJECT);
         }
 
+        // 팀 삭제 (팀 멤버도 같이 삭제)
+        teamService.deleteByRecruitmentId(projectId);
+
         // 논리적 삭제
         project.cancel();
     }

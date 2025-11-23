@@ -14,4 +14,5 @@ public interface TeamService {
     Team findByRecruitmentId(Long recruitmentId);
     boolean existsById(Long id);
     Page<TeamResponseDto> getByUserIdAndCategoryAndStatus(Long userId, RecruitmentCategory category, RecruitmentStatus status, Pageable pageable);
+    void deleteByRecruitmentId(Long recruitmentId);
 }

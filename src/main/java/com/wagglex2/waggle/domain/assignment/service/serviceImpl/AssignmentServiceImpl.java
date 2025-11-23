@@ -198,6 +198,9 @@ public class AssignmentServiceImpl implements AssignmentService {
             throw new BusinessException(ErrorCode.CANNOT_DELETE_ANOTHER_USER_ASSIGNMENT);
         }
 
+        // 팀 삭제 (팀 멤버도 같이 삭제)
+        teamService.deleteByRecruitmentId(assignmentId);
+
         // 논리적 삭제
         assignment.cancel();
     }

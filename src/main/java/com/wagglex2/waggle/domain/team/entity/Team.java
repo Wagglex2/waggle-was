@@ -52,7 +52,7 @@ public class Team {
     @JoinColumn(name = "recruitment_id", nullable = false, unique = true)
     private BaseRecruitment recruitment;
 
-    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @BatchSize(size = 100)
     @OrderBy("role ASC") // LEADER 우선
     private List<TeamMember> members = new ArrayList<>();

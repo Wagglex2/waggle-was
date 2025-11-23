@@ -90,4 +90,12 @@ public class TeamServiceImpl implements TeamService {
 
         return teams.map(TeamResponseDto::fromEntity);
     }
+
+    @Override
+    @Transactional
+    public void deleteByRecruitmentId(Long recruitmentId) {
+        Team team = findByRecruitmentId(recruitmentId);
+
+        teamRepository.delete(team);
+    }
 }

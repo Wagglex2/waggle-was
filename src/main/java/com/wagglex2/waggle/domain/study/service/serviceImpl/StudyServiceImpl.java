@@ -15,6 +15,7 @@ import com.wagglex2.waggle.domain.study.dto.response.StudyResponseDto;
 import com.wagglex2.waggle.domain.study.entity.Study;
 import com.wagglex2.waggle.domain.study.repository.StudyRepository;
 import com.wagglex2.waggle.domain.study.service.StudyService;
+import com.wagglex2.waggle.domain.team.service.TeamService;
 import com.wagglex2.waggle.domain.user.entity.User;
 import com.wagglex2.waggle.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,7 @@ public class StudyServiceImpl implements StudyService {
     private static final Set<String> STUDY_SORT_FIELDS = Set.of("createdAt");
     private final StudyRepository studyRepository;
     private final UserService userService;
+    private final TeamService teamService;
     private final BookmarkService bookmarkService;
     private final ApplicationService applicationService;
     private final PageableValidator pageableValidator;
@@ -174,6 +176,9 @@ public class StudyServiceImpl implements StudyService {
         if (!userId.equals(study.getUser().getId())) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
+
+        // 팀 삭제 (팀 멤버도 같이 삭제)
+        teamService.deleteByRecruitmentId(studyId);
 
         // 논리적 삭제
         study.cancel();
