@@ -3,7 +3,9 @@
 ### 🐝 와글와글
 > **대구·경북 대학생을 위한 프로젝트·과제·스터디 팀 매칭 플랫폼**
 >   
->   🔗 [https://waggle-waggle.com](https://waggle-waggle.com)
+> [🔗] [https://waggle-waggle.com](https://waggle-waggle.com) (26.01.15 배포중단상태)
+> 
+> [발표영상] https://www.youtube.com/watch?v=tWwo3FbwOLI
 
 ---
 
